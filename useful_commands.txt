@@ -1,0 +1,5 @@
+tab seperated data unique words in column 1
+	cut -f1 LUSC.filtered.net | sort -u | wc -l
+
+use for extracting data from tab-delimited files
+	awk 'printf'
