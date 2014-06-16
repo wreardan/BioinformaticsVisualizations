@@ -1,43 +1,54 @@
 <html>
 	<head>
 		<title>Bioinformatics Visualization</title>
-		<style type="text/css">
-			body {
-				margin: 0px;
-				overflow: hidden;
-			}
-			#canvas {
-				width: 80%;
-				height: 100%;
-			}
-			#search {
-				width: 20%;
-				float: left;
-			}
-			#search_box {
-				width: 100%;
-				height: 20px;
-			}
-			#search_output {
-				width: 100%;
-				height: 90%;
-			}
-		</style>
+		<link rel="stylesheet" href="css/main.css" />
+		<link rel="stylesheet" href="css/blue_indent_menu.css" />
+		<link rel="stylesheet" href="css/green_indent_menu.css" />
+		<!-- JS-Tree stylesheet theme -->
+		<link rel="stylesheet" href="lib/themes/default/style.min.css" />
 	</head>
 	<body>
-		<div id="search">
-			<input type="text" id="search_box" onkeyup="search_list()" />
-			<select id="search_output" multiple="multiple"></select>
+		<div id="search_bar">
+			<div id="cssmenu2">
+				<ul>
+					<li><a href="#">COAD</a></li>
+					<li><a href="#">KIRC</a></li>
+					<li><a href="#">LUSC</a></li>
+					<li><a href="#">UCEC</a></li>
+				</ul>
+			</div>
+			<div id="search_area">
+				<div id="cssmenu">
+					<ul>
+						<li><a href="#regulator_search">Regulators</a></li>
+						<li><a href="#gene_search">Gene Search</a></li>
+					</ul>
+				</div>
+				<div id="search_tabs">
+					<div id="regulator_search">
+						<input type="text" id="search_box" />
+						<div id="jstree_regulators"></div>
+					</div>
+					<div id="gene_search">
+						<input type="text" id="search_box" />
+						<div id="jstree_genes"></div>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<div id="main">
 			<canvas id="canvas"></canvas>
 		</div>
 
+		<!-- Libraries -->
 		<script src="lib/three-r59.js"></script>
 		<script src="lib/jquery-2.1.1.js"></script>
+		<script src="lib/jstree.js"></script>
+		<script src="lib/jquery-ui-1.10.4.js"></script>
 		<script src="lib/OrbitControls.js"></script>
 
+		<!-- Project Javascript Files -->
 		<script src="js/util.js"></script>
 		<script src="js/network.js"></script>
 		<script src="js/app.js"></script>

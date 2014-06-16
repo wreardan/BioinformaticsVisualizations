@@ -139,6 +139,30 @@ App.prototype.highlight_node = function(node) {
 	this.scene.add(this.highlight_mesh)
 }
 
+App.prototype.highlight_nodeset = function(nodeset) {
+	if(this.highlight_mesh) {
+		this.scene.remove(this.highlight_mesh)
+	}
+
+	var material = new THREE.LineBasicMaterial({
+		color: 0xFFFFFF,
+		linewidth: 5,
+	})
+
+	var geometry = new THREE.Geometry()
+	for(var i = 0; i < nodeset.length; i++) {
+		var node = nodeset[i]
+		for(var j = 0; j < node.edges.length; j++) {
+			var edge = node.edges[j]
+			geometry.vertices.push(edge.regulator.position)
+			geometry.vertices.push(edge.gene.position)
+		}
+	}
+
+	this.highlight_mesh = new THREE.Line(geometry, material)
+	this.scene.add(this.highlight_mesh)
+}
+
 App.prototype.set_table = function(nodes) {
 	var search_output = document.getElementById('search_output')
 	for(var i = 0; i < nodes.length; i++) {
@@ -176,6 +200,42 @@ App.prototype.search_list = function() {
 	}
 }
 
+App.prototype.build_node_tree = function(nodes) {
+	var tree = {'core': 
+		{'data':
+			[]
+		},
+		'checkbox': {
+			'keep_selected_style': false
+		},
+		'search': {
+			'show_only_matches': true,
+			'fuzzy': false,
+		},
+		'plugins': ['checkbox', 'search']
+	}
+	var data = tree.core.data
+	//Add Regulators
+	for(var i = 0; i < nodes.length; i++) {
+		var node = nodes[i]
+		var tree_node = {
+			'id': node.name,
+			'text': node.name,
+			'state': {'opened': false, 'selected': false},
+			'children': []
+		}
+		//Add connected Genes as child elements
+		/*
+		for(var j = 0; j < regulator.edges.length; j++) {
+			var gene = regulator.edges[j].gene
+			//node.children.push(gene.name)
+		}
+		*/
+		data.push(tree_node)
+	}
+	return tree
+}
+
 App.prototype.init = function() {
 	//http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 	this.scene = new THREE.Scene()
@@ -186,7 +246,44 @@ App.prototype.init = function() {
 	resize()
 	//document.body.appendChild(renderer.domElement)
 
+	//ahh the infamous this reference-keeper
 	var self = this
+
+	//Setup Search Tabs
+	$(function() {
+		$('#search_area').tabs()
+	})
+
+	$('#jstree_regulators').on("changed.jstree", function (e, data) {
+		//un-highlight all nodes
+		self.network.clear_highlighted()
+		var nodeset = []
+		//console.log(data.selected)
+		for(var i = 0; i < data.selected.length; i++) {
+			var regulator_name = data.selected[i]
+			var regulator = self.network.regulator_map[regulator_name]
+			if(regulator) {
+				console.log("Regulator '%s' selected", regulator_name)
+				regulator.highlighted = true
+				nodeset.push(regulator)
+			}
+		}
+		//rebuild lines
+		self.scene.remove(self.line_mesh)
+		self.build_lines()
+		self.highlight_nodeset(nodeset)
+	})
+
+	var to = false
+	$('#search_box').keyup(function() {
+		if(to) {
+			clearTimeout(to)
+		}
+		to = setTimeout(function() {
+			var v = $('#search_box').val()
+			$('#jstree_regulators').jstree(true).search(v)
+		})
+	})
 
 	//Setup Double Click Handler for MoveTo
 	$('#search_output').dblclick(function(event) {
@@ -234,12 +331,12 @@ App.prototype.init = function() {
 			self.network.init_from_table(table)
 
 			console.log('score before: %f', self.network.score())
-			self.network.reposition_regulators(self.scene)
+			self.network.reposition_regulators() //can optionally add self.scene for icosahedron display
 			console.log('score after: %f', self.network.score())
 
-			self.network.iterate(100)
+			//self.network.iterate(100)
 			//network.find_worst_regulator()
-			console.log('score after iterate: %f', self.network.score())
+			//console.log('score after iterate: %f', self.network.score())
 
 			//First add Spheres to the scene (nodes)
 			self.build_spheres(self.network)
@@ -248,7 +345,16 @@ App.prototype.init = function() {
 			self.build_lines(self.network)
 
 			//Fill search sidebar
-			self.set_table(self.network.get_regulators())
+			//self.set_table(self.network.get_regulators())
+
+			//Setup jstree
+			var regulators = self.network.get_regulators()
+			var tree = self.build_node_tree(regulators)
+			$('#jstree_regulators').jstree(tree)
+
+			var genes = self.network.get_genes()
+			tree = self.build_node_tree(genes)
+			$('#jstree_genes').jstree(tree)
 		}
 	})
 

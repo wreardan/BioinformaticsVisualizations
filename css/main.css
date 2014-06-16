@@ -1,0 +1,23 @@
+body {
+	margin: 0px;
+	overflow: hidden;
+}
+#canvas {
+	width: 80%;
+	height: 100%;
+}
+#search_bar {
+	width: 20%;
+	float: left;
+}
+#search_box {
+	width: 100%;
+	height: 20px;
+}
+#search_output {
+	width: 100%;
+	height: 50%;
+}
+#jstree_regulators ul {
+	overflow-y: scroll;
+}

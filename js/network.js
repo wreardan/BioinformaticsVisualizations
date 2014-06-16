@@ -455,6 +455,13 @@ Network.prototype.get_genes = function() {
 	return genes
 }
 
+Network.prototype.clear_highlighted = function() {
+	for(var key in this.regulator_map) {
+		var regulator = this.regulator_map[key]
+		regulator.highlighted = false
+	}
+}
+
 Network.prototype.get_regulators = function() {
 	var regulators = []
 	//add gene nodes
