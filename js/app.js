@@ -62,8 +62,8 @@ App.prototype.build_spheres = function(network) {
 	this.add_nodes_to_geometry(all_geometry, genes, all_materials, 1)
 
 	//Build Mesh and add to Scene
-	var mesh = new THREE.Mesh(all_geometry, all_materials)
-	this.scene.add(mesh, 10.0)
+	this.sphere_mesh = new THREE.Mesh(all_geometry, all_materials)
+	this.scene.add(this.sphere_mesh, 10.0)
 }
 
 App.prototype.build_lines = function(network) {
@@ -199,6 +199,56 @@ App.prototype.build_node_tree = function(nodes) {
 	return tree
 }
 
+App.prototype.load_data = function(filename) {
+
+	//Load in data
+	var self = this
+	$.ajax({
+		url: filename,
+		data: {},
+		success: function(data) {
+			//Free existing Meshes
+			if(this.line_mesh) {
+				this.scene.remove(this.line_mesh)
+			}
+			if(this.sphere_mesh) {
+				this.scene.remove(this.sphere_mesh)
+			}
+
+			//Populate Network
+			var table = self.parse_tab_data(data)
+			self.network = new Network()
+			self.network.init_from_table(table)
+
+			console.log('score before: %f', self.network.score())
+			self.network.reposition_regulators() //can optionally add self.scene for icosahedron display
+			console.log('score after: %f', self.network.score())
+
+			//self.network.iterate(100)
+			//network.find_worst_regulator()
+			//console.log('score after iterate: %f', self.network.score())
+
+			//First add Spheres to the scene (nodes)
+			self.build_spheres(self.network)
+
+			//Next, add lines to the scene (edges)
+			self.build_lines(self.network)
+
+			//Fill search sidebar
+			//self.set_table(self.network.get_regulators())
+
+			//Setup jstree
+			var regulators = self.network.get_regulators()
+			var tree = self.build_node_tree(regulators)
+			$('#jstree_regulators').jstree(tree)
+
+			var genes = self.network.get_genes()
+			tree = self.build_node_tree(genes)
+			$('#jstree_genes').jstree(tree)
+		}
+	})
+}
+
 App.prototype.init = function() {
 	//http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 	this.scene = new THREE.Scene()
@@ -281,45 +331,7 @@ App.prototype.init = function() {
 		})
 	})
 
-	//Load in data
-	var self = this
-	$.ajax({
-		url: "data/UCEC.filtered.net",
-		data: {},
-		success: function(data) {
-			//$("#search_content").html(data)
-
-			var table = self.parse_tab_data(data)
-			self.network = new Network()
-			self.network.init_from_table(table)
-
-			console.log('score before: %f', self.network.score())
-			self.network.reposition_regulators() //can optionally add self.scene for icosahedron display
-			console.log('score after: %f', self.network.score())
-
-			//self.network.iterate(100)
-			//network.find_worst_regulator()
-			//console.log('score after iterate: %f', self.network.score())
-
-			//First add Spheres to the scene (nodes)
-			self.build_spheres(self.network)
-
-			//Next, add lines to the scene (edges)
-			self.build_lines(self.network)
-
-			//Fill search sidebar
-			//self.set_table(self.network.get_regulators())
-
-			//Setup jstree
-			var regulators = self.network.get_regulators()
-			var tree = self.build_node_tree(regulators)
-			$('#jstree_regulators').jstree(tree)
-
-			var genes = self.network.get_genes()
-			tree = self.build_node_tree(genes)
-			$('#jstree_genes').jstree(tree)
-		}
-	})
+	this.load_data('data/UCEC.filtered.net')
 
 	//add controls
 	controls = new THREE.OrbitControls( camera );
