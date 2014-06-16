@@ -102,7 +102,7 @@ App.prototype.build_lines = function(network) {
 		positions[i + 5] = edge.regulator.get_position(20.0).z
 
 		//console.log("edge.color: %s", edge.color.toString(16))
-		if(edge.regulator.highlighted) {
+		if(edge.regulator.highlighted || edge.gene.highlighted) {
 			var highlight_color = 0xFFFFFF
 			set_rgb_color(colors, i, highlight_color)
 			set_rgb_color(colors, i + 3, highlight_color)
@@ -163,43 +163,6 @@ App.prototype.highlight_nodeset = function(nodeset) {
 	this.scene.add(this.highlight_mesh)
 }
 
-App.prototype.set_table = function(nodes) {
-	var search_output = document.getElementById('search_output')
-	for(var i = 0; i < nodes.length; i++) {
-		var node = nodes[i]
-		var option = document.createElement("option")
-		option.text = node.name
-		search_output.add(option)
-	}
-}
-
-App.prototype.search_list = function() {
-	var search_box = document.getElementById('search_box')
-	var search_value = search_box.value
-	var search_output = document.getElementById('search_output')
-	$('#search_output').empty()
-	var case_sensitive = false
-
-	if(this.network) {
-		var nodes = this.network.get_regulators()
-		for(var i = 0; i < nodes.length; i++) {
-			var node = nodes[i]
-			var found = false
-			if(case_sensitive) {
-				found = node.name.search(search_value) > -1
-			}
-			else {
-				found = node.name.toLowerCase().search(search_value.toLowerCase()) > -1
-			}
-			if(found) {
-				var option = document.createElement("option")
-				option.text = node.name
-				search_output.add(option)
-			}
-		}
-	}
-}
-
 App.prototype.build_node_tree = function(nodes) {
 	var tree = {'core': 
 		{'data':
@@ -254,6 +217,7 @@ App.prototype.init = function() {
 		$('#search_area').tabs()
 	})
 
+	//Setup Regulator Search
 	$('#jstree_regulators').on("changed.jstree", function (e, data) {
 		//un-highlight all nodes
 		self.network.clear_highlighted()
@@ -275,47 +239,46 @@ App.prototype.init = function() {
 	})
 
 	var to = false
-	$('#search_box').keyup(function() {
+	$('#regulator_search_box').keyup(function() {
 		if(to) {
 			clearTimeout(to)
 		}
 		to = setTimeout(function() {
-			var v = $('#search_box').val()
+			var v = $('#regulator_search_box').val()
 			$('#jstree_regulators').jstree(true).search(v)
 		})
 	})
 
-	//Setup Double Click Handler for MoveTo
-	$('#search_output').dblclick(function(event) {
-		var name = event.target.value
-		var regulator = self.network.regulator_map[name]
-		if(regulator) {
-			//move to position
-			var position = regulator.get_position(20.0).clone()
-			console.log('regulator found: %s, %f,%f,%f', name, position.x, position.y, position.z)
-			
-			position.multiplyScalar(1.2)
-			controls.set(position)
+	//Setup Gene Search
+	$('#jstree_genes').on("changed.jstree", function (e, data) {
+		//un-highlight all nodes
+		self.network.clear_highlighted()
+		var nodeset = []
+		//console.log(data.selected)
+		for(var i = 0; i < data.selected.length; i++) {
+			var gene_name = data.selected[i]
+			var gene = self.network.gene_map[gene_name]
+			if(gene) {
+				console.log("Gene '%s' selected", gene_name)
+				gene.highlighted = true
+				nodeset.push(gene)
+			}
 		}
+		//rebuild lines
+		self.scene.remove(self.line_mesh)
+		self.build_lines()
+		self.highlight_nodeset(nodeset)
 	})
 
-
-	//Setup Single Click handler for highlight
-	$('#search_output').click(function(event) {
-		var name = event.target.value
-		var regulator = self.network.regulator_map[name]
-		if(regulator) {
-			//un-highlight old regulator, highlight new
-			if(self.highlighted_regulator) {
-				self.highlighted_regulator.highlighted = false
-			}
-			regulator.highlighted = true
-			self.highlighted_regulator = regulator
-			//rebuild lines
-			self.scene.remove(self.line_mesh)
-			self.build_lines()
-			self.highlight_node(regulator)
+	var to2 = false
+	$('#gene_search_box').keyup(function() {
+		if(to2) {
+			clearTimeout(to2)
 		}
+		to2 = setTimeout(function() {
+			var v = $('#gene_search_box').val()
+			$('#jstree_genes').jstree(true).search(v)
+		})
 	})
 
 	//Load in data
