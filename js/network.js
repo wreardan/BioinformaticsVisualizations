@@ -460,6 +460,10 @@ Network.prototype.clear_highlighted = function() {
 		var regulator = this.regulator_map[key]
 		regulator.highlighted = false
 	}
+	for(var key in this.gene_map) {
+		var gene = this.gene_map[key]
+		gene.highlighted = false
+	}
 }
 
 Network.prototype.get_regulators = function() {

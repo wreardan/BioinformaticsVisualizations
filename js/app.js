@@ -4,6 +4,7 @@ function App() {
 	this.renderer = null
 	this.controls = null
 	this.network = null
+	this.draw_all = false
 }
 
 //get a javascript table from tab-seperated data
@@ -42,6 +43,11 @@ App.prototype.add_nodes_to_geometry = function(all_geometry, nodes, all_material
 }
 
 App.prototype.build_spheres = function(network) {
+	//Free existing Meshes
+	if(this.sphere_mesh) {
+		this.scene.remove(this.sphere_mesh)
+	}
+
 	var all_geometry = new THREE.Geometry()
 	var materials_array = [
 	//https://kuler.adobe.com/create/color-wheel/?base=2&rule=Triad&selected=2&name=My%20Kuler%20Theme&mode=rgb&rgbvalues=0.08418045607684588,0.41734359406654653,0.7,1,0.18727433882359856,0.15299668785889553,0.2202577943954941,0.6421043606594332,1,0.7646047552411358,0.8,0.09620623551639529,0.6707893832606259,0.7,0.11918045607684583&swatchOrder=0,1,2,3,4
@@ -67,6 +73,11 @@ App.prototype.build_spheres = function(network) {
 }
 
 App.prototype.build_lines = function(network) {
+	//Free existing Meshes
+	if(this.line_mesh) {
+		this.scene.remove(this.line_mesh)
+	}
+
 	var edges = this.network.edges
 	//New add lines with buffered geometry
 	var num_points = edges.length * 2
@@ -92,26 +103,28 @@ App.prototype.build_lines = function(network) {
 	var i = 0
 	for(var index = 0; index < edges.length; index++) {
 		var edge = edges[index]
+		if(edge.regulator.highlighted || edge.gene.highlighted || this.draw_all) {
 
-		positions[i + 0] = edge.gene.get_position(20.0).x
-		positions[i + 1] = edge.gene.get_position(20.0).y
-		positions[i + 2] = edge.gene.get_position(20.0).z
+			positions[i + 0] = edge.gene.get_position(20.0).x
+			positions[i + 1] = edge.gene.get_position(20.0).y
+			positions[i + 2] = edge.gene.get_position(20.0).z
 
-		positions[i + 3] = edge.regulator.get_position(20.0).x
-		positions[i + 4] = edge.regulator.get_position(20.0).y
-		positions[i + 5] = edge.regulator.get_position(20.0).z
+			positions[i + 3] = edge.regulator.get_position(20.0).x
+			positions[i + 4] = edge.regulator.get_position(20.0).y
+			positions[i + 5] = edge.regulator.get_position(20.0).z
 
-		//console.log("edge.color: %s", edge.color.toString(16))
-		if(edge.regulator.highlighted || edge.gene.highlighted) {
-			var highlight_color = 0xFFFFFF
-			set_rgb_color(colors, i, highlight_color)
-			set_rgb_color(colors, i + 3, highlight_color)
+			//console.log("edge.color: %s", edge.color.toString(16))
+			if(edge.regulator.highlighted || edge.gene.highlighted) {
+				var highlight_color = 0xFFFFFF
+				set_rgb_color(colors, i, highlight_color)
+				set_rgb_color(colors, i + 3, highlight_color)
+			}
+			else {
+				set_rgb_color(colors, i, edge.color)
+				set_rgb_color(colors, i + 3, edge.color)
+			}
+			i += 6
 		}
-		else {
-			set_rgb_color(colors, i, edge.color)
-			set_rgb_color(colors, i + 3, edge.color)
-		}
-		i += 6
 	}
 
 	this.line_mesh = new THREE.Line(line_geometry, material, THREE.LinePieces)
@@ -199,74 +212,9 @@ App.prototype.build_node_tree = function(nodes) {
 	return tree
 }
 
-App.prototype.load_data = function(filename) {
-
-	//Load in data
-	var self = this
-	$.ajax({
-		url: filename,
-		data: {},
-		success: function(data) {
-			//Free existing Meshes
-			if(this.line_mesh) {
-				this.scene.remove(this.line_mesh)
-			}
-			if(this.sphere_mesh) {
-				this.scene.remove(this.sphere_mesh)
-			}
-
-			//Populate Network
-			var table = self.parse_tab_data(data)
-			self.network = new Network()
-			self.network.init_from_table(table)
-
-			console.log('score before: %f', self.network.score())
-			self.network.reposition_regulators() //can optionally add self.scene for icosahedron display
-			console.log('score after: %f', self.network.score())
-
-			//self.network.iterate(100)
-			//network.find_worst_regulator()
-			//console.log('score after iterate: %f', self.network.score())
-
-			//First add Spheres to the scene (nodes)
-			self.build_spheres(self.network)
-
-			//Next, add lines to the scene (edges)
-			self.build_lines(self.network)
-
-			//Fill search sidebar
-			//self.set_table(self.network.get_regulators())
-
-			//Setup jstree
-			var regulators = self.network.get_regulators()
-			var tree = self.build_node_tree(regulators)
-			$('#jstree_regulators').jstree(tree)
-
-			var genes = self.network.get_genes()
-			tree = self.build_node_tree(genes)
-			$('#jstree_genes').jstree(tree)
-		}
-	})
-}
-
-App.prototype.init = function() {
-	//http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
-	this.scene = new THREE.Scene()
-	camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000)
-	camera.position.z = 30
-	renderer = new THREE.WebGLRenderer({canvas: document.getElementById('canvas')} )
-	renderer.setClearColor( 0x000000, 1)
-	resize()
-	//document.body.appendChild(renderer.domElement)
-
+App.prototype.setup_regulator_search = function() {
 	//ahh the infamous this reference-keeper
 	var self = this
-
-	//Setup Search Tabs
-	$(function() {
-		$('#search_area').tabs()
-	})
-
 	//Setup Regulator Search
 	$('#jstree_regulators').on("changed.jstree", function (e, data) {
 		//un-highlight all nodes
@@ -298,6 +246,12 @@ App.prototype.init = function() {
 			$('#jstree_regulators').jstree(true).search(v)
 		})
 	})
+}
+
+App.prototype.setup_gene_search = function() {
+	//ahh the infamous this reference-keeper
+	var self = this
+
 
 	//Setup Gene Search
 	$('#jstree_genes').on("changed.jstree", function (e, data) {
@@ -330,8 +284,77 @@ App.prototype.init = function() {
 			$('#jstree_genes').jstree(true).search(v)
 		})
 	})
+}
 
-	this.load_data('data/UCEC.filtered.net')
+App.prototype.load_data = function(filename) {
+	console.log("loading data from file '%s'", filename)
+
+	//Load in data
+	var self = this
+	$.ajax({
+		url: 'data/' + filename,
+		data: {},
+		success: function(data) {
+
+			//Populate Network
+			var table = self.parse_tab_data(data)
+			self.network = new Network()
+			self.network.init_from_table(table)
+
+			console.log('score before: %f', self.network.score())
+			self.network.reposition_regulators() //can optionally add self.scene for icosahedron display
+			console.log('score after: %f', self.network.score())
+
+			//self.network.iterate(100)
+			//network.find_worst_regulator()
+			//console.log('score after iterate: %f', self.network.score())
+
+			//First add Spheres to the scene (nodes)
+			self.build_spheres(self.network)
+
+			//Next, add lines to the scene (edges)
+			self.build_lines(self.network)
+
+			//Fill search sidebar
+			//self.set_table(self.network.get_regulators())
+
+			//Setup jstree
+			$('#jstree_regulators').empty().jstree('destroy')
+			var regulators = self.network.get_regulators()
+			var tree = self.build_node_tree(regulators)
+			$('#jstree_regulators').jstree(tree)
+
+			$('#jstree_genes').empty().jstree('destroy')
+			var genes = self.network.get_genes()
+			tree = self.build_node_tree(genes)
+			$('#jstree_genes').jstree(tree)
+
+			//setup search functionality
+			self.setup_regulator_search()
+			self.setup_gene_search()
+		}
+	})
+}
+
+App.prototype.init = function() {
+	//http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
+	this.scene = new THREE.Scene()
+	camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000)
+	camera.position.z = 30
+	renderer = new THREE.WebGLRenderer({canvas: document.getElementById('canvas')} )
+	renderer.setClearColor( 0x000000, 1)
+	resize()
+	//document.body.appendChild(renderer.domElement)
+
+	//ahh the infamous this reference-keeper
+	var self = this
+
+	//Setup Search Tabs
+	$(function() {
+		$('#search_area').tabs()
+	})
+
+	this.load_data('UCEC.filtered.net')
 
 	//add controls
 	controls = new THREE.OrbitControls( camera );
