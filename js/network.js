@@ -191,6 +191,7 @@ function Network() {
 	this.edges = []
 	this.iso_positions = null
 	this.radius = 20.0
+	this.clusters = {}
 }
 
 Network.prototype.init_from_table = function(table) {
@@ -475,11 +476,20 @@ Network.prototype.get_regulators = function() {
 }
 
 Network.prototype.assign_gene_to_cluster = function(gene_name, cluster_id) {
+	//Change cluster id of gene/regulator
 	var gene = this.gene_map[gene_name]
 	if(gene) {
 		gene.cluster = cluster_id
 	}
-	else {
-		throw("Cannot assign gene to cluster: Gene Not Found in Network: " + gene_name)
+	var regulator = this.regulator_map[gene_name]
+	if(regulator) {
+		regulator.cluster = cluster_id
 	}
+
+	//Add into cluster
+	var cluster = this.clusters[cluster_id]
+	if(!cluster) {
+		cluster = this.clusters[cluster_id] = []
+	}
+	cluster.push(gene_name)
 }
