@@ -159,33 +159,18 @@ Network.prototype.add = function(gene_name, regulator_name, weight) {
 	this.edges.push(edge2)
 }
 
-Network.prototype.get_genes = function() {
-	var genes = []
+Network.prototype.get = function(type) {
+	var nodes = []
 
 	//add gene nodes
 	for(var key in this.node_map) {
 		var node = this.node_map[key]
-		if(node.type == "gene") {
-			genes.push(node)
+		if(node.type == type) {
+			nodes.push(node)
 		}
 	}
 
-	return genes
-}
-
-Network.prototype.get_regulators = function() {
-	var regulators = []
-
-	//add gene nodes
-	for(var key in this.node_map) {
-		var node = this.node_map[key]
-		if(node.type == "regulator") {
-			regulators.push(node)
-		}
-	}
-
-	return regulators
-
+	return nodes
 }
 
 Network.prototype.clear_highlighted = function() {

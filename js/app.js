@@ -60,11 +60,11 @@ App.prototype.build_spheres = function(network) {
 	var all_materials = new THREE.MeshFaceMaterial(materials_array)
 
 	//Add Regulatory nodes with first color
-	var regulators = this.network.get_regulators()
+	var regulators = this.network.get('regulator')
 	this.add_nodes_to_geometry(all_geometry, regulators, all_materials, 0)
 
 	//Add Gene nodes with second color
-	var genes = this.network.get_genes()
+	var genes = this.network.get('gene')
 	this.add_nodes_to_geometry(all_geometry, genes, all_materials, 1)
 
 	//Build Mesh and add to Scene
@@ -330,12 +330,12 @@ App.prototype.load_data = function(filename, clusters_filename) {
 
 			//Setup jstree
 			$('#jstree_regulators').empty().jstree('destroy')
-			var regulators = self.network.get_regulators()
+			var regulators = self.network.get('regulator')
 			var tree = self.build_node_tree(regulators)
 			$('#jstree_regulators').jstree(tree)
 
 			$('#jstree_genes').empty().jstree('destroy')
-			var genes = self.network.get_genes()
+			var genes = self.network.get('gene')
 			tree = self.build_node_tree(genes)
 			$('#jstree_genes').jstree(tree)
 
