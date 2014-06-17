@@ -286,13 +286,30 @@ App.prototype.setup_gene_search = function() {
 	})
 }
 
-App.prototype.load_data = function(filename) {
+App.prototype.load_clusters = function(filename) {
+	var self = this
+	$.ajax({
+		url: filename,
+		data: {},
+		success: function(data) {
+			var table = self.parse_tab_data(data)
+			for(var i = 0; i < table.length; i++) {
+				var row = table[i]
+				var gene_name = row[0]
+				var cluster_id = row[1]
+				self.network.assign_gene_to_cluster(gene_name, cluster_id)
+			}
+		}
+	})
+}
+
+App.prototype.load_data = function(filename, clusters_filename) {
 	console.log("loading data from file '%s'", filename)
 
 	//Load in data
 	var self = this
 	$.ajax({
-		url: 'data/' + filename,
+		url: filename,
 		data: {},
 		success: function(data) {
 
@@ -332,6 +349,10 @@ App.prototype.load_data = function(filename) {
 			//setup search functionality
 			self.setup_regulator_search()
 			self.setup_gene_search()
+
+			if(clusters_filename) {
+				self.load_clusters(clusters_filename)
+			}
 		}
 	})
 }
@@ -354,7 +375,7 @@ App.prototype.init = function() {
 		$('#search_area').tabs()
 	})
 
-	this.load_data('UCEC.filtered.net')
+	//this.load_data('data/UCEC.filtered.net')
 
 	//add controls
 	controls = new THREE.OrbitControls( camera );

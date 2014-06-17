@@ -22,18 +22,13 @@ UW-Madison Bioinformatics
 */
 
 //This will be the parent class of Gene and Regulator
-function NetworkNode() {
-	this.name = null
-	this.index = Node.index++
-	this.position = random_point_on_sphere()
-	this.edges = []
-	this.type = null
-}
-NetworkNode.prototype.init = function(name) {
+function NetworkNode(name, type) {
 	this.name = name
-	this.type ='node'
+	this.position = random_point_on_sphere(20.0)
+	this.edges = []
+	this.type = type
+	this.cluster = null
 }
-Node.index = 0
 
 //Gene Class
 function Gene(name) {
@@ -41,6 +36,7 @@ function Gene(name) {
 	this.index = Gene.index++
 	this.position = random_point_on_sphere(20.0)
 	this.edges = []
+	this.cluster = null
 }
 Gene.index = 0
 
@@ -476,4 +472,14 @@ Network.prototype.get_regulators = function() {
 
 	return regulators
 
+}
+
+Network.prototype.assign_gene_to_cluster = function(gene_name, cluster_id) {
+	var gene = this.gene_map[gene_name]
+	if(gene) {
+		gene.cluster = cluster_id
+	}
+	else {
+		throw("Cannot assign gene to cluster: Gene Not Found in Network: " + gene_name)
+	}
 }
