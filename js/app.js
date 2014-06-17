@@ -35,7 +35,7 @@ App.prototype.add_nodes_to_geometry = function(all_geometry, nodes, all_material
 		var sphere_mesh = new THREE.Mesh(sphere_geometry, all_materials)
 		THREE.GeometryUtils.setMaterialIndex(sphere_mesh.geometry, material_index)
 		if(typeof node.position == 'undefined') //todo: REMOVE
-			sphere_mesh.position = node.get_position(20.0)
+			sphere_mesh.position = node.position
 		else
 			sphere_mesh.position = node.position
 		THREE.GeometryUtils.merge(all_geometry, sphere_mesh)
@@ -105,13 +105,13 @@ App.prototype.build_lines = function(network) {
 		var edge = edges[index]
 		if(edge.regulator.highlighted || edge.gene.highlighted || this.draw_all) {
 
-			positions[i + 0] = edge.gene.get_position(20.0).x
-			positions[i + 1] = edge.gene.get_position(20.0).y
-			positions[i + 2] = edge.gene.get_position(20.0).z
+			positions[i + 0] = edge.gene.position.x
+			positions[i + 1] = edge.gene.position.y
+			positions[i + 2] = edge.gene.position.z
 
-			positions[i + 3] = edge.regulator.get_position(20.0).x
-			positions[i + 4] = edge.regulator.get_position(20.0).y
-			positions[i + 5] = edge.regulator.get_position(20.0).z
+			positions[i + 3] = edge.regulator.position.x
+			positions[i + 4] = edge.regulator.position.y
+			positions[i + 5] = edge.regulator.position.z
 
 			//console.log("edge.color: %s", edge.color.toString(16))
 			if(edge.regulator.highlighted || edge.gene.highlighted) {
@@ -223,7 +223,7 @@ App.prototype.setup_regulator_search = function() {
 		//console.log(data.selected)
 		for(var i = 0; i < data.selected.length; i++) {
 			var regulator_name = data.selected[i]
-			var regulator = self.network.regulator_map[regulator_name]
+			var regulator = self.network.node_map[regulator_name]
 			if(regulator) {
 				console.log("Regulator '%s' selected", regulator_name)
 				regulator.highlighted = true
@@ -261,7 +261,7 @@ App.prototype.setup_gene_search = function() {
 		//console.log(data.selected)
 		for(var i = 0; i < data.selected.length; i++) {
 			var gene_name = data.selected[i]
-			var gene = self.network.gene_map[gene_name]
+			var gene = self.network.node_map[gene_name]
 			if(gene) {
 				console.log("Gene '%s' selected", gene_name)
 				gene.highlighted = true
