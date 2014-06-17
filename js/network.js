@@ -184,6 +184,8 @@ function Edge(regulator, gene, weight, color) {
 
 //Network Class
 function Network() {
+	this.node_map = {}
+	
 	this.gene_map = {}
 	this.num_genes = 0
 	this.regulator_map = {}
@@ -252,165 +254,11 @@ Network.prototype.reposition_regulators = function(scene) {
 	this.reposition_genes()
 }
 
-Network.prototype.swap_positions = function(reg1, reg2) {
-	//swap positions
-	var temp = reg1.position
-	reg1.position = reg2.position
-	reg2.position = temp
-
-	//update genes
-	reg1.reposition_genes()
-	reg2.reposition_genes()
-}
-
-Network.prototype.swap_regulators = function(regulators, num) {
-	var swaps = []
-	for(var i = 0; i < num; i++) {
-		var pos1 = random_int(this.num_regulators)
-		var reg1 = regulators[pos1]
-		var pos2 = random_int(this.num_regulators)
-		var reg2 = regulators[pos2]
-
-		this.swap_positions(reg1, reg2)
-
-		swaps.push([reg1, reg2])
-	}
-	return swaps
-}
-
-Network.prototype.do_swaps = function(swaps) {
-	for(var i = 0; i < swaps.length; i++) {
-		var swap = swaps[i]
-		this.swap_positions(swap[0], swap[1])
-	}
-}
-
 Network.prototype.reposition_genes = function() {
 	//for each gene
 	for(var key in this.gene_map) {
 		var gene = this.gene_map[key]
 		gene.reposition()
-	}
-}
-
-/*
-Score the network according to the distance
-lower is better
-sum(edge_distances)
-edge_distance = sqrt(gene, regulator)
-*/
-Network.prototype.score = function() {
-	var distance_sum = 0.0
-	for(var i = 0; i < this.edges.length; i++) {
-		var edge = this.edges[i]
-		var gene_pos = edge.gene.position
-		var reg_pos = edge.regulator.position
-		var edge_distance = gene_pos.distanceTo(reg_pos)
-		distance_sum += edge_distance
-	}
-	return distance_sum
-}
-
-Network.prototype.find_worst_regulator = function(regulators) {
-	var worst = null
-	var high_score = 0
-	for(var i = 0; i < regulators.length; i++) {
-		var regulator = regulators[i]
-		var score = regulator.score()
-		if(score > high_score) {
-			worst = regulator
-			high_score = score
-		}
-	}
-	//console.log('worst regulator: %s, score: %f', worst.name, high_score)
-	return worst
-}
-
-Network.prototype.find_closest_regulator = function(target) {
-	var closest = null
-	var min_distance = 1000000
-	for(var key in this.regulator_map) {
-		var regulator = this.regulator_map[key]
-		if(regulator != target) {
-			var distance = target.position.distanceTo(regulator.position)
-			if(distance < min_distance) {
-				min_distance = distance
-				closest = regulator
-			}
-		}
-	}
-	return closest
-}
-
-function ps(p) {
-	var x = Math.floor(p.x)
-	var y = Math.floor(p.y)
-	var z = Math.floor(p.z)
-	return '(' + x + ',' + y + ',' + z + ')'
-}
-
-Network.prototype.iterate_slow = function(num_iterations) {
-	var low_score = this.score()
-	for(var i = 0; i < num_iterations; i++) {
-		for(var key in this.regulator_map) {
-			var regulator = this.regulator_map[key]
-			var closest = this.find_closest_regulator(regulator)
-			var common_name = regulator.get_common_regulator()
-			var common = this.regulator_map[common_name]
-			this.swap_positions(common, closest)
-/*
-			console.log("closing '%s': swapping '%s' and '%s'",
-				regulator.name, closest.name, common_name)
-			console.log('positions: %s,%s,%s', ps(regulator.position), 
-				ps(closest.position), ps(common.position))
-*/
-			var score = this.score()
-			if(score < low_score) {
-				low_score = score
-			}
-			else {
-				this.swap_positions(common, closest)
-			}
-		}
-	}
-}
-
-Network.prototype.iterate = function(num_iterations) {
-	var regulators = this.get_regulators()
-	var swapped = {}
-
-	for(var i = 0; i < num_iterations; i++) {
-		var worst = this.find_worst_regulator(regulators)
-		var common_name = worst.get_common_regulator()
-		var common = this.regulator_map[common_name]
-		//console.log('score before swap: %f', worst.score())
-		if(swapped[common_name]) {
-			var closest = this.find_closest_regulator(common)
-			this.swap_positions(worst, closest)
-			swapped[worst.name] = true
-		}
-		else {
-			var closest = this.find_closest_regulator(worst)
-			this.swap_positions(common, closest)
-			swapped[common_name] = true
-		}
-		console.log('%s: %s, %s', worst.name, common_name, closest.name)
-		//console.log('score after swap: %f', worst.score())
-		regulators.remove(worst)
-	}
-}
-
-Network.prototype.iterate_simple = function(num_iterations) {
-	var regulators = this.get_regulators()
-	//todo: use hueristic
-	var score = this.score()
-	for(var i = 0; i < num_iterations; i++) {
-		//randomly swap two regulators and see if it improved score
-		var swaps = this.swap_regulators(regulators, 1)
-		var new_score = this.score()
-		if(new_score > score) {
-			this.do_swaps(swaps) // undo the swaps if it raises the score
-		}
 	}
 }
 

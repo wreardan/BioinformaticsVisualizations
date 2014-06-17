@@ -318,13 +318,7 @@ App.prototype.load_data = function(filename, clusters_filename) {
 			self.network = new Network()
 			self.network.init_from_table(table)
 
-			console.log('score before: %f', self.network.score())
 			self.network.reposition_regulators() //can optionally add self.scene for icosahedron display
-			console.log('score after: %f', self.network.score())
-
-			//self.network.iterate(100)
-			//network.find_worst_regulator()
-			//console.log('score after iterate: %f', self.network.score())
 
 			//First add Spheres to the scene (nodes)
 			self.build_spheres(self.network)
@@ -333,7 +327,6 @@ App.prototype.load_data = function(filename, clusters_filename) {
 			self.build_lines(self.network)
 
 			//Fill search sidebar
-			//self.set_table(self.network.get_regulators())
 
 			//Setup jstree
 			$('#jstree_regulators').empty().jstree('destroy')
@@ -378,7 +371,7 @@ App.prototype.init = function() {
 	//this.load_data('data/UCEC.filtered.net')
 
 	//add controls
-	controls = new THREE.OrbitControls( camera );
+	this.controls = new THREE.OrbitControls( camera );
 	//controls.addEventListener( 'change', render );
 }
 
