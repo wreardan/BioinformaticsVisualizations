@@ -295,11 +295,21 @@ App.prototype.setup_module_combobox = function() {
 	for(var i = 0; i < modules.length; i++) {
 		var module_id = modules[i]
 		var option = document.createElement('option')
-		option.textContent = module_id
+		option.innerHTML = module_id
 		option.value = module_id
 		module_combobox.appendChild(option)
 	}
-	//Setup click callback
+	//Setup value-changed callback
+	var self = this
+	$('#module_select_combobox').change(function() {
+		self.network.clear_highlighted()
+		//Highlight this cluster's nodes
+		var cluster_id = $('#module_select_combobox').val()
+		self.network.highlight_cluster(cluster_id)
+
+		var cluster = self.network.get_cluster(cluster_id)
+		self.highlight_nodeset(cluster)
+	})
 }
 
 App.prototype.load_clusters = function(filename) {

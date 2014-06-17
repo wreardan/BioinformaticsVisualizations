@@ -195,14 +195,14 @@ Network.prototype.assign_gene_to_cluster = function(gene_name, cluster_id) {
 	var node = this.node_map[gene_name]
 	if(node) {
 		node.cluster = cluster_id
-	}
 
-	//Add into cluster
-	var cluster = this.clusters[cluster_id]
-	if(!cluster) {
-		cluster = this.clusters[cluster_id] = []
+		//Add into cluster
+		var cluster = this.clusters[cluster_id]
+		if(!cluster) {
+			cluster = this.clusters[cluster_id] = []
+		}
+		cluster.push(node)
 	}
-	cluster.push(gene_name)
 }
 
 Network.prototype.get_cluster_ids = function(minimum_genes) {
@@ -218,4 +218,20 @@ Network.prototype.get_cluster_ids = function(minimum_genes) {
 	}
 
 	return clusters
+}
+
+Network.prototype.get_cluster = function(cluster_id) {
+	return this.clusters[cluster_id]
+}
+
+Network.prototype.highlight_cluster = function(cluster_id) {
+	var cluster = this.clusters[cluster_id]
+	if(!cluster) {
+		throw('cluster not found: ' + cluster_id)
+	}
+
+	for(var i = 0; i < cluster.length; i++) {
+		var node = cluster[i]
+		node.highlighted = true
+	}
 }
