@@ -286,6 +286,22 @@ App.prototype.setup_gene_search = function() {
 	})
 }
 
+App.prototype.setup_module_combobox = function() {
+	//Get a list of modules
+	var modules = this.network.get_cluster_ids(10)
+	console.log(modules.length)
+	//Populate the combobox with these values
+	var module_combobox = document.getElementById('module_select_combobox')
+	for(var i = 0; i < modules.length; i++) {
+		var module_id = modules[i]
+		var option = document.createElement('option')
+		option.textContent = module_id
+		option.value = module_id
+		module_combobox.appendChild(option)
+	}
+	//Setup click callback
+}
+
 App.prototype.load_clusters = function(filename) {
 	var self = this
 	$.ajax({
@@ -299,6 +315,7 @@ App.prototype.load_clusters = function(filename) {
 				var cluster_id = row[1]
 				self.network.assign_gene_to_cluster(gene_name, cluster_id)
 			}
+			self.setup_module_combobox()
 		}
 	})
 }

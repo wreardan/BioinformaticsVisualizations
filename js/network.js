@@ -24,12 +24,6 @@ function NetworkNode(name, type) {
 	this.highlighted = false
 }
 
-function NetworkEdge(regulator, gene, weight) {
-	this.regulator = regulator
-	this.gene = gene
-	this.weight = weight
-}
-
 NetworkNode.prototype.add_edge = function(edge) {
 	this.edges.push(edge)
 }
@@ -57,7 +51,14 @@ NetworkNode.prototype.reposition = function(type) {
 	this.position.addVectors(node.position, offset)
 }
 
-//Network Class
+//An Edge in the Network
+function NetworkEdge(regulator, gene, weight) {
+	this.regulator = regulator
+	this.gene = gene
+	this.weight = weight
+}
+
+//Undirected Weighted Network
 function Network() {
 	this.node_map = {}
 
@@ -68,6 +69,7 @@ function Network() {
 	this.clusters = {}
 }
 
+//Initialize a Network from parsed data, each row is an edge in the network
 Network.prototype.init_from_table = function(table) {
 
 	for(var i = 0; i < table.length; i++) {
@@ -80,14 +82,16 @@ Network.prototype.init_from_table = function(table) {
 	}
 }
 
-Network.prototype.build_iso_sphere_positions = function(radius, elements, scene) {
+//Create a list of icosahedron postions that satisfies the constraint of
+//being able to fit 'num_elements'
+Network.prototype.build_iso_sphere_positions = function(radius, num_elements, scene) {
 	//Build an icosahedron sphere by subdivision with a minimum number of vertices
 	var iso_sphere_geometry
 	var detail = 0
 	do {
 		iso_sphere_geometry = new THREE.IcosahedronGeometry(radius, detail)
 		detail++
-	} while(iso_sphere_geometry.vertices.length < elements)
+	} while(iso_sphere_geometry.vertices.length < num_elements)
 
 	this.iso_positions = iso_sphere_geometry.vertices
 	//console.log("detail: %d, length: %d",detail - 1,iso_sphere_geometry.vertices.length)
@@ -102,6 +106,7 @@ Network.prototype.build_iso_sphere_positions = function(radius, elements, scene)
 	}
 }
 
+//Reposition regulators randomly around an Icosahedron
 Network.prototype.reposition_regulators = function(scene) {
 	//Build iso positions if not already
 	if(!this.iso_positions) { //todo: check length <
@@ -128,6 +133,7 @@ Network.prototype.reposition_regulators = function(scene) {
 	this.reposition_genes()
 }
 
+//Reposition genes around the highest weight regulator
 Network.prototype.reposition_genes = function() {
 	for(var key in this.node_map) {
 		var node = this.node_map[key]
@@ -137,6 +143,7 @@ Network.prototype.reposition_genes = function() {
 	}
 }
 
+//Add an edge to the network
 Network.prototype.add = function(gene_name, regulator_name, weight) {
 	//Add node to map
 	var gene2 = this.node_map[gene_name]
@@ -159,6 +166,7 @@ Network.prototype.add = function(gene_name, regulator_name, weight) {
 	this.edges.push(edge2)
 }
 
+//Get nodes of 'type' from Network
 Network.prototype.get = function(type) {
 	var nodes = []
 
@@ -173,6 +181,7 @@ Network.prototype.get = function(type) {
 	return nodes
 }
 
+//Clear the highlighted flag from all nodes
 Network.prototype.clear_highlighted = function() {
 	for(var key in this.node_map) {
 		var node = this.node_map[key]
@@ -180,6 +189,7 @@ Network.prototype.clear_highlighted = function() {
 	}
 }
 
+//Assigns a gene a cluster id
 Network.prototype.assign_gene_to_cluster = function(gene_name, cluster_id) {
 	//Change cluster id of gene/regulator
 	var node = this.node_map[gene_name]
@@ -193,4 +203,19 @@ Network.prototype.assign_gene_to_cluster = function(gene_name, cluster_id) {
 		cluster = this.clusters[cluster_id] = []
 	}
 	cluster.push(gene_name)
+}
+
+Network.prototype.get_cluster_ids = function(minimum_genes) {
+	if(!minimum_genes) minimum_genes = 0
+
+	var clusters = []
+
+	for(var id in this.clusters) {
+		var cluster = this.clusters[id]
+		if(cluster.length > minimum_genes) {
+			clusters.push(id)
+		}
+	}
+
+	return clusters
 }
