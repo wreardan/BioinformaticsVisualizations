@@ -35,7 +35,7 @@ App.prototype.add_nodes_to_geometry = function(all_geometry, nodes, all_material
 		var sphere_mesh = new THREE.Mesh(sphere_geometry, all_materials)
 		THREE.GeometryUtils.setMaterialIndex(sphere_mesh.geometry, material_index)
 		if(typeof node.position == 'undefined') //todo: REMOVE
-			sphere_mesh.position = node.get_position(20.0)
+			sphere_mesh.position = node.position
 		else
 			sphere_mesh.position = node.position
 		THREE.GeometryUtils.merge(all_geometry, sphere_mesh)
@@ -60,11 +60,11 @@ App.prototype.build_spheres = function(network) {
 	var all_materials = new THREE.MeshFaceMaterial(materials_array)
 
 	//Add Regulatory nodes with first color
-	var regulators = this.network.get_regulators()
+	var regulators = this.network.get('regulator')
 	this.add_nodes_to_geometry(all_geometry, regulators, all_materials, 0)
 
 	//Add Gene nodes with second color
-	var genes = this.network.get_genes()
+	var genes = this.network.get('gene')
 	this.add_nodes_to_geometry(all_geometry, genes, all_materials, 1)
 
 	//Build Mesh and add to Scene
@@ -105,13 +105,13 @@ App.prototype.build_lines = function(network) {
 		var edge = edges[index]
 		if(edge.regulator.highlighted || edge.gene.highlighted || this.draw_all) {
 
-			positions[i + 0] = edge.gene.get_position(20.0).x
-			positions[i + 1] = edge.gene.get_position(20.0).y
-			positions[i + 2] = edge.gene.get_position(20.0).z
+			positions[i + 0] = edge.gene.position.x
+			positions[i + 1] = edge.gene.position.y
+			positions[i + 2] = edge.gene.position.z
 
-			positions[i + 3] = edge.regulator.get_position(20.0).x
-			positions[i + 4] = edge.regulator.get_position(20.0).y
-			positions[i + 5] = edge.regulator.get_position(20.0).z
+			positions[i + 3] = edge.regulator.position.x
+			positions[i + 4] = edge.regulator.position.y
+			positions[i + 5] = edge.regulator.position.z
 
 			//console.log("edge.color: %s", edge.color.toString(16))
 			if(edge.regulator.highlighted || edge.gene.highlighted) {
@@ -223,7 +223,7 @@ App.prototype.setup_regulator_search = function() {
 		//console.log(data.selected)
 		for(var i = 0; i < data.selected.length; i++) {
 			var regulator_name = data.selected[i]
-			var regulator = self.network.regulator_map[regulator_name]
+			var regulator = self.network.node_map[regulator_name]
 			if(regulator) {
 				console.log("Regulator '%s' selected", regulator_name)
 				regulator.highlighted = true
@@ -261,7 +261,7 @@ App.prototype.setup_gene_search = function() {
 		//console.log(data.selected)
 		for(var i = 0; i < data.selected.length; i++) {
 			var gene_name = data.selected[i]
-			var gene = self.network.gene_map[gene_name]
+			var gene = self.network.node_map[gene_name]
 			if(gene) {
 				console.log("Gene '%s' selected", gene_name)
 				gene.highlighted = true
@@ -286,13 +286,57 @@ App.prototype.setup_gene_search = function() {
 	})
 }
 
-App.prototype.load_data = function(filename) {
+App.prototype.setup_module_combobox = function() {
+	//Get a list of modules
+	var modules = this.network.get_cluster_ids(10)
+	console.log(modules.length)
+	//Populate the combobox with these values
+	var module_combobox = document.getElementById('module_select_combobox')
+	for(var i = 0; i < modules.length; i++) {
+		var module_id = modules[i]
+		var option = document.createElement('option')
+		option.innerHTML = module_id
+		option.value = module_id
+		module_combobox.appendChild(option)
+	}
+	//Setup value-changed callback
+	var self = this
+	$('#module_select_combobox').change(function() {
+		self.network.clear_highlighted()
+		//Highlight this cluster's nodes
+		var cluster_id = $('#module_select_combobox').val()
+		self.network.highlight_cluster(cluster_id)
+
+		var cluster = self.network.get_cluster(cluster_id)
+		self.highlight_nodeset(cluster)
+	})
+}
+
+App.prototype.load_clusters = function(filename) {
+	var self = this
+	$.ajax({
+		url: filename,
+		data: {},
+		success: function(data) {
+			var table = self.parse_tab_data(data)
+			for(var i = 0; i < table.length; i++) {
+				var row = table[i]
+				var gene_name = row[0]
+				var cluster_id = row[1]
+				self.network.assign_gene_to_cluster(gene_name, cluster_id)
+			}
+			self.setup_module_combobox()
+		}
+	})
+}
+
+App.prototype.load_data = function(filename, clusters_filename) {
 	console.log("loading data from file '%s'", filename)
 
 	//Load in data
 	var self = this
 	$.ajax({
-		url: 'data/' + filename,
+		url: filename,
 		data: {},
 		success: function(data) {
 
@@ -301,13 +345,7 @@ App.prototype.load_data = function(filename) {
 			self.network = new Network()
 			self.network.init_from_table(table)
 
-			console.log('score before: %f', self.network.score())
 			self.network.reposition_regulators() //can optionally add self.scene for icosahedron display
-			console.log('score after: %f', self.network.score())
-
-			//self.network.iterate(100)
-			//network.find_worst_regulator()
-			//console.log('score after iterate: %f', self.network.score())
 
 			//First add Spheres to the scene (nodes)
 			self.build_spheres(self.network)
@@ -316,22 +354,25 @@ App.prototype.load_data = function(filename) {
 			self.build_lines(self.network)
 
 			//Fill search sidebar
-			//self.set_table(self.network.get_regulators())
 
 			//Setup jstree
 			$('#jstree_regulators').empty().jstree('destroy')
-			var regulators = self.network.get_regulators()
+			var regulators = self.network.get('regulator')
 			var tree = self.build_node_tree(regulators)
 			$('#jstree_regulators').jstree(tree)
 
 			$('#jstree_genes').empty().jstree('destroy')
-			var genes = self.network.get_genes()
+			var genes = self.network.get('gene')
 			tree = self.build_node_tree(genes)
 			$('#jstree_genes').jstree(tree)
 
 			//setup search functionality
 			self.setup_regulator_search()
 			self.setup_gene_search()
+
+			if(clusters_filename) {
+				self.load_clusters(clusters_filename)
+			}
 		}
 	})
 }
@@ -354,10 +395,10 @@ App.prototype.init = function() {
 		$('#search_area').tabs()
 	})
 
-	this.load_data('UCEC.filtered.net')
+	//this.load_data('data/UCEC.filtered.net')
 
 	//add controls
-	controls = new THREE.OrbitControls( camera );
+	this.controls = new THREE.OrbitControls( camera );
 	//controls.addEventListener( 'change', render );
 }
 
