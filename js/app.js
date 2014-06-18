@@ -182,7 +182,7 @@ App.prototype.highlight_nodeset = function(nodeset, color) {
 
 App.prototype.highlight_nodeset2 = function(nodeset, color, color2) {
 	if(this.highlight_mesh) {
-		this.scene.remove(this.hightlight_mesh)
+		this.scene.remove(this.highlight_mesh)
 	}
 
 	//build nodeset map
@@ -419,9 +419,11 @@ App.prototype.load_data = function(filename, clusters_filename) {
 			}
 
 			//New search functionality
+			/*
 			var names = self.network.get_node_names()
 			self.gene_filtered_list = new FilteredList()
 			self.gene_filtered_list.init('node_search', names)
+			*/
 		}
 	})
 }
