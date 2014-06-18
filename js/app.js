@@ -138,7 +138,7 @@ App.prototype.highlight_node = function(node) {
 
 	var material = new THREE.LineBasicMaterial({
 		color: 0xFFFFFF,
-		linewidth: 5,
+		linewidth: 1,
 	})
 
 	var geometry = new THREE.Geometry()
@@ -148,18 +148,22 @@ App.prototype.highlight_node = function(node) {
 		geometry.vertices.push(edge.gene.position)
 	}
 
-	this.highlight_mesh = new THREE.Line(geometry, material)
+	this.highlight_mesh = new THREE.Line(geometry, material, THREE.LinePieces)
 	this.scene.add(this.highlight_mesh)
 }
 
-App.prototype.highlight_nodeset = function(nodeset) {
+App.prototype.highlight_nodeset = function(nodeset, color) {
+	if(!color) {
+		color = 0xFFFFFF
+	}
+
 	if(this.highlight_mesh) {
 		this.scene.remove(this.highlight_mesh)
 	}
 
 	var material = new THREE.LineBasicMaterial({
-		color: 0xFFFFFF,
-		linewidth: 5,
+		color: color,
+		linewidth: 1,
 	})
 
 	var geometry = new THREE.Geometry()
@@ -172,7 +176,47 @@ App.prototype.highlight_nodeset = function(nodeset) {
 		}
 	}
 
-	this.highlight_mesh = new THREE.Line(geometry, material)
+	this.highlight_mesh = new THREE.Line(geometry, material, THREE.LinePieces)
+	this.scene.add(this.highlight_mesh)
+}
+
+App.prototype.highlight_nodeset2 = function(nodeset, color, color2) {
+	if(this.highlight_mesh) {
+		this.scene.remove(this.hightlight_mesh)
+	}
+
+	//build nodeset map
+	var node_map = {}
+	for(var i = 0; i < nodeset.length; i++) {
+		var node_name = nodeset[i].name
+		node_map[node_name] = true
+	}
+
+	var material = new THREE.LineBasicMaterial({
+		vertexColors: true,
+		linewidth: 1,
+	})
+
+	color = new THREE.Color(color)
+	color2 = new THREE.Color(color2)
+
+	var geometry = new THREE.Geometry()
+	for(var i = 0; i < nodeset.length; i++) {
+		var node = nodeset[i]
+		for(var j = 0; j < node.edges.length; j++) {
+			var edge = node.edges[j]
+			geometry.vertices.push(edge.regulator.position)
+			geometry.vertices.push(edge.gene.position)
+			if(node_map[edge.regulator.name]) {
+				geometry.colors.push(color)
+			}
+			else {
+				geometry.colors.push(color2)
+			}
+		}
+	}
+
+	this.highlight_mesh = new THREE.Line(geometry, material, THREE.LinePieces)
 	this.scene.add(this.highlight_mesh)
 }
 
@@ -308,7 +352,7 @@ App.prototype.setup_module_combobox = function() {
 		self.network.highlight_cluster(cluster_id)
 
 		var cluster = self.network.get_cluster(cluster_id)
-		self.highlight_nodeset(cluster)
+		self.highlight_nodeset2(cluster, 0xFFFFFF, 0xFF0000)
 	})
 }
 
@@ -373,6 +417,11 @@ App.prototype.load_data = function(filename, clusters_filename) {
 			if(clusters_filename) {
 				self.load_clusters(clusters_filename)
 			}
+
+			//New search functionality
+			var names = self.network.get_node_names()
+			self.gene_filtered_list = new FilteredList()
+			self.gene_filtered_list.init('node_search', names)
 		}
 	})
 }

@@ -181,6 +181,14 @@ Network.prototype.get = function(type) {
 	return nodes
 }
 
+Network.prototype.get_node_names = function() {
+	var node_names = []
+	for(var key in this.node_map) {
+		node_names.push(key)
+	}
+	return node_names
+}
+
 //Clear the highlighted flag from all nodes
 Network.prototype.clear_highlighted = function() {
 	for(var key in this.node_map) {

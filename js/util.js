@@ -144,10 +144,12 @@ var object_to_list = function(object) {
 }
 //Remove object from array
 Array.prototype.remove = function(object) {
-	var index = this.indexOf(object)
-	if(index > -1) {
-		this.splice(index, 1)
-	}
+	do {
+		var index = this.indexOf(object)
+		if(index > -1) {
+			this.splice(index, 1)
+		}
+	} while(index > -1)
 }
 Array.prototype.extend = function(other) {
 	for(var i = 0; i < other.length; i++) {

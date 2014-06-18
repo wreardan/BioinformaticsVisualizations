@@ -1,0 +1,11 @@
+Jaccard Coefficient (weighted)
+	Similiarity Measure
+	= size(set1 disjoint set2) / size(set1 union set2)
+
+
+TODO:
+	Filtered List
+	Directed Arrows
+	Module Edges
+		Color according to in-network vs out-network
+	Arrange Regulators to maximize Jaccard Coefficient
