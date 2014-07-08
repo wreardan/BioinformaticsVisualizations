@@ -169,6 +169,7 @@ App.prototype.highlight_arrows = function(nodeset, color) {
 	})
 
 	var geometry = new THREE.Geometry()
+	var line_geometry = new THREE.Geometry()
 	var up = new THREE.Vector3(0,1,0)
 	for(var i = 0; i < nodeset.length; i++) {
 		var node = nodeset[i]
@@ -176,7 +177,7 @@ App.prototype.highlight_arrows = function(nodeset, color) {
 			var edge = node.edges[j]
 			var gp = edge.gene.position
 			var rp = edge.regulator.position
-			geometry.vertices.push(gp)
+			line_geometry.vertices.push(gp)
 
 			var diff = new THREE.Vector3()
 			diff.subVectors(gp, rp)
@@ -185,27 +186,35 @@ App.prototype.highlight_arrows = function(nodeset, color) {
 			perp.crossVectors(diff, up)
 			perp.multiplyScalar(0.5)
 
-			diff.multiplyScalar(0.5)
-			var arrow_start = new THREE.Vector3()
-			arrow_start.subVectors(gp, diff)
+			var arrow_start = diff.clone()
+			arrow_start.multiplyScalar(0.5)
+			arrow_start.subVectors(gp, arrow_start)
 
 			var c1 = new THREE.Vector3()
 			c1.addVectors(arrow_start, perp)
-			geometry.vertices.push(c1)
+			line_geometry.vertices.push(c1)
 
 			var c2 = new THREE.Vector3()
 			c2.subVectors(arrow_start, perp)
-			geometry.vertices.push(c2)
+			line_geometry.vertices.push(c2)
 
-			geometry.vertices.push(gp)
+			line_geometry.vertices.push(gp)
 
-			geometry.vertices.push(c1)
-			geometry.vertices.push(c2)
+			line_geometry.vertices.push(c1)
+			line_geometry.vertices.push(c2)
 
+			var head_start = gp.clone()
+			head_start.sub(diff)
+			//create cylinder geometry
+			var arrow = new THREE.ArrowHelper(diff, head_start, 1.0, 0xFFFFFF)
+			arrow.cone.position.copy(arrow.position)
+			arrow.cone.rotation.copy(arrow.rotation)
+			arrow.cone.updateMatrix()
+			THREE.GeometryUtils.merge(geometry, arrow.cone)
 		}
 	}
-	this.arrow_mesh = new THREE.Line(geometry, line_material, THREE.LinePieces)
-	//this.arrow_mesh = new THREE.Mesh(geometry, material)
+	//this.arrow_mesh = new THREE.Line(line_geometry, line_material, THREE.LinePieces)
+	this.arrow_mesh = new THREE.Mesh(geometry, material)
 	this.scene.add(this.arrow_mesh)
 }
 
@@ -279,6 +288,9 @@ App.prototype.highlight_nodeset2 = function(nodeset, color, color2) {
 
 	this.highlight_mesh = new THREE.Line(geometry, material, THREE.LinePieces)
 	this.scene.add(this.highlight_mesh)
+
+	//draw arrowheads
+	this.highlight_arrows(nodeset)
 }
 
 App.prototype.build_node_tree = function(nodes) {
