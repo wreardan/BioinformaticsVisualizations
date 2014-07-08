@@ -279,8 +279,10 @@ App.prototype.highlight_nodeset2 = function(nodeset, color, color2) {
 			geometry.vertices.push(edge.gene.position)
 			if(node_map[edge.regulator.name]) {
 				geometry.colors.push(color)
+				geometry.colors.push(color)
 			}
 			else {
+				geometry.colors.push(color2)
 				geometry.colors.push(color2)
 			}
 		}
@@ -450,7 +452,7 @@ App.prototype.load_clusters = function(filename) {
 			//First add Spheres to the scene (nodes)
 			self.build_spheres(self.network)
 			//Next, add lines to the scene (edges)
-			self.build_lines(self.network)
+			//self.build_lines(self.network)
 		}
 	})
 }
