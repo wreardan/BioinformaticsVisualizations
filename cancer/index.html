@@ -7,16 +7,16 @@
 		<!-- JS-Tree stylesheet theme -->
 		<link rel="stylesheet" href="../lib/themes/default/style.min.css" />
 	</head>
-	<body onload="app.load_data('data/UCEC.filtered.net')">
+	<body onload="app.load_data('data/UCEC.filtered.net', 'data/UCEC_0.3_clusterassign.txt')">
 		<div id="search_bar">
 			<div id="cssmenu2">
 				<ul>
-					<li><a href="#" onclick="app.load_data('data/BRCA.filtered.net');">BRCA</a></li>
-					<li><a href="#" onclick="app.load_data('data/COAD.filtered.net');">COAD</a></li>
-					<li><a href="#" onclick="app.load_data('data/KIRC.filtered.net');">KIRC</a></li>
-					<li><a href="#" onclick="app.load_data('data/LUSC.filtered.net');">LUSC</a></li>
-					<li><a href="#" onclick="app.load_data('data/OV.filtered.net');">OV</a></li>
-					<li><a href="#" onclick="app.load_data('data/UCEC.filtered.net');">UCEC</a></li>
+					<li><a href="#" onclick="app.load_data('data/BRCA.filtered.net', 'data/BRCA_0.3_clusterassign.txt');">BRCA</a></li>
+					<li><a href="#" onclick="app.load_data('data/COAD.filtered.net', 'data/COAD_0.3_clusterassign.txt');">COAD</a></li>
+					<li><a href="#" onclick="app.load_data('data/KIRC.filtered.net', 'data/KIRC_0.3_clusterassign.txt');">KIRC</a></li>
+					<li><a href="#" onclick="app.load_data('data/LUSC.filtered.net', 'data/LUSC_0.3_clusterassign.txt');">LUSC</a></li>
+					<li><a href="#" onclick="app.load_data('data/OV.filtered.net', 'data/OV_0.3_clusterassign.txt');">OV</a></li>
+					<li><a href="#" onclick="app.load_data('data/UCEC.filtered.net', 'data/UCEC_0.3_clusterassign.txt');">UCEC</a></li>
 				</ul>
 			</div>
 			<div id="search_area">
@@ -25,6 +25,11 @@
 						<li><a href="#regulator_search">Regulators</a></li>
 						<li><a href="#gene_search">Gene Search</a></li>
 					</ul>
+				</div>
+				<div id="module_selector">
+					<label for"module_select_combobox">Module:</label>
+					<select id="module_select_combobox">
+					</select>
 				</div>
 				<div id="search_tabs">
 					<div id="regulator_search">
