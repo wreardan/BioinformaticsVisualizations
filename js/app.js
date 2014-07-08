@@ -275,8 +275,7 @@ App.prototype.setup_regulator_search = function() {
 			}
 		}
 		//rebuild lines
-		self.scene.remove(self.line_mesh)
-		self.build_lines()
+		//self.build_lines()
 		self.highlight_nodeset(nodeset)
 	})
 
@@ -314,7 +313,7 @@ App.prototype.setup_gene_search = function() {
 		}
 		//rebuild lines
 		self.scene.remove(self.line_mesh)
-		self.build_lines()
+		//self.build_lines()
 		self.highlight_nodeset(nodeset)
 	})
 
@@ -370,6 +369,13 @@ App.prototype.load_clusters = function(filename) {
 				self.network.assign_gene_to_cluster(gene_name, cluster_id)
 			}
 			self.setup_module_combobox()
+
+			self.network.reposition_clusters()
+
+			//First add Spheres to the scene (nodes)
+			self.build_spheres(self.network)
+			//Next, add lines to the scene (edges)
+			self.build_lines(self.network)
 		}
 	})
 }
@@ -389,13 +395,11 @@ App.prototype.load_data = function(filename, clusters_filename) {
 			self.network = new Network()
 			self.network.init_from_table(table)
 
-			self.network.reposition_regulators() //can optionally add self.scene for icosahedron display
+			//self.network.reposition_regulators() //can optionally add self.scene for icosahedron display
 
-			//First add Spheres to the scene (nodes)
-			self.build_spheres(self.network)
 
 			//Next, add lines to the scene (edges)
-			self.build_lines(self.network)
+			//self.build_lines(self.network)
 
 			//Fill search sidebar
 

@@ -56,6 +56,7 @@ function NetworkEdge(regulator, gene, weight) {
 	this.regulator = regulator
 	this.gene = gene
 	this.weight = weight
+	this.color = 0xFFFFFF
 }
 
 //Undirected Weighted Network
@@ -106,19 +107,76 @@ Network.prototype.build_iso_sphere_positions = function(radius, num_elements, sc
 	}
 }
 
-//Reposition regulators randomly around an Icosahedron
-Network.prototype.reposition_regulators = function(scene) {
+Network.prototype.sphere_points = function(radius, N) {
+	var width_segments = Math.ceil(Math.sqrt(N))
+	var height_segments = Math.ceil(Math.sqrt(N))
+	var difference = Math.PI / 16
+	var sphere = new THREE.SphereGeometry(radius, width_segments, height_segments,
+		0, Math.PI * 2, difference, Math.PI - 2 * difference)
+	return sphere.vertices
+}
+
+function find_closest_position(position_list, position) {
+	var min_distance = 100000000
+	var min_position = null
+	for(var i = 0; i < position_list.length; i++) {
+		var distance = position.distanceTo(position_list[i])
+		if(distance < min_distance) {
+			min_distance = distance
+			min_position = i
+		}
+	}
+	return min_position
+}
+
+//Reposition genes into module formation
+Network.prototype.reposition_clusters = function() {
+	//var positions = this.sphere_points(this.radius, this.num_nodes)
+	this.get_iso_positions()
+	var positions = this.iso_positions
+
+	for(var cluster in this.clusters) {
+		var node_list = this.clusters[cluster]
+		//position first node
+		var first_node = node_list[0]
+		var random_index = random_int(positions.length)
+		first_node.position.copy(positions[random_index])
+		positions.splice(random_index, 1)
+
+		//position other nodes around first node
+		for(var i = 1; i < node_list.length; i++) {
+			var node = node_list[i]
+			var position_index = find_closest_position(positions, first_node.position)
+			var position = positions[position_index]
+//			console.log('first_position: (%f,%f,%f), position: (%f,%f,%f), distance: %f',
+//				first_node.position.x, first_node.position.y, first_node.position.z,
+//				position.x, position.y, position.z,
+//			console.log('%s:%s:%s: %f', cluster, node.name, node.type,
+//				position.distanceTo(first_node.position)
+//			)
+			node.position.copy(position)
+			positions.splice(position_index, 1)
+		}
+	}
+}
+
+Network.prototype.get_iso_positions = function() {
 	//Build iso positions if not already
 	if(!this.iso_positions) { //todo: check length <
-		this.build_iso_sphere_positions(this.radius, this.num_nodes, scene)
+		var num_nodes = this.num_nodes * 2
+		this.build_iso_sphere_positions(this.radius, num_nodes, scene)
 	}
-	//set used flag to false
 	var position_list = []
 	for(var i = 0; i < this.iso_positions.length; i++) {
-		//this.iso_positions[i].used = false
 		position_list.push(i)
 	}
-	//randomly? assign regulators to iso_positions
+	return position_list
+}
+
+//Reposition regulators randomly around an Icosahedron
+Network.prototype.reposition_regulators = function(scene) {
+	//randomly assign regulators to iso_positions
+	var position_list = this.get_iso_positions()
 	for(var key in this.node_map) {
 		var node = this.node_map[key]
 		if(node.type == 'regulator') {

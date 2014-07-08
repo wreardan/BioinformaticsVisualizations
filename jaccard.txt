@@ -4,8 +4,17 @@ Jaccard Coefficient (weighted)
 
 
 TODO:
-	Filtered List
 	Directed Arrows
+	Select Modules: Light Up Arrow
+	Arrange Modules? Jaccard?
+	Arrange Regulators to maximize Jaccard Coefficient
+	Filtered List
+		Remove jstree
+		Replace functionality with FilteredList
+		Add functionality to FilteredList
+			Add Icons
+			Better Formatting
+
+DONE
 	Module Edges
 		Color according to in-network vs out-network
-	Arrange Regulators to maximize Jaccard Coefficient

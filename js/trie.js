@@ -1,4 +1,5 @@
 /*
+(C) Wesley Reardan 2014, Personal Library
 Trie data structure used for fast lookup of strings based on prefix.
 Implemented using a sibling-list
 Lookup: log(n)
