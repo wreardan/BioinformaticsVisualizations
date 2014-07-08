@@ -152,7 +152,65 @@ App.prototype.highlight_node = function(node) {
 	this.scene.add(this.highlight_mesh)
 }
 
+App.prototype.highlight_arrows = function(nodeset, color) {
+	if(!color) {
+		color = 0xFFFFFF
+	}
+
+	if(this.arrow_mesh) {
+		this.scene.remove(this.arrow_mesh)
+	}
+
+	var material = new THREE.MeshBasicMaterial({
+		color: color
+	})
+	var line_material = new THREE.LineBasicMaterial({
+		color: color
+	})
+
+	var geometry = new THREE.Geometry()
+	var up = new THREE.Vector3(0,1,0)
+	for(var i = 0; i < nodeset.length; i++) {
+		var node = nodeset[i]
+		for(var j = 0; j < node.edges.length; j++) {
+			var edge = node.edges[j]
+			var gp = edge.gene.position
+			var rp = edge.regulator.position
+			geometry.vertices.push(gp)
+
+			var diff = new THREE.Vector3()
+			diff.subVectors(gp, rp)
+			diff.normalize()
+			var perp = new THREE.Vector3()
+			perp.crossVectors(diff, up)
+			perp.multiplyScalar(0.5)
+
+			diff.multiplyScalar(0.5)
+			var arrow_start = new THREE.Vector3()
+			arrow_start.subVectors(gp, diff)
+
+			var c1 = new THREE.Vector3()
+			c1.addVectors(arrow_start, perp)
+			geometry.vertices.push(c1)
+
+			var c2 = new THREE.Vector3()
+			c2.subVectors(arrow_start, perp)
+			geometry.vertices.push(c2)
+
+			geometry.vertices.push(gp)
+
+			geometry.vertices.push(c1)
+			geometry.vertices.push(c2)
+
+		}
+	}
+	this.arrow_mesh = new THREE.Line(geometry, line_material, THREE.LinePieces)
+	//this.arrow_mesh = new THREE.Mesh(geometry, material)
+	this.scene.add(this.arrow_mesh)
+}
+
 App.prototype.highlight_nodeset = function(nodeset, color) {
+
 	if(!color) {
 		color = 0xFFFFFF
 	}
@@ -178,6 +236,9 @@ App.prototype.highlight_nodeset = function(nodeset, color) {
 
 	this.highlight_mesh = new THREE.Line(geometry, material, THREE.LinePieces)
 	this.scene.add(this.highlight_mesh)
+
+	//draw arrowheads
+	this.highlight_arrows(nodeset)
 }
 
 App.prototype.highlight_nodeset2 = function(nodeset, color, color2) {
