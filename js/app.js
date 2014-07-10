@@ -277,7 +277,7 @@ App.prototype.highlight_nodeset2 = function(nodeset, color, color2) {
 			var edge = node.edges[j]
 			geometry.vertices.push(edge.regulator.position)
 			geometry.vertices.push(edge.gene.position)
-			if(node_map[edge.regulator.name]) {
+			if(node_map[edge.regulator.name] && node_map[edge.gene.name]) {
 				geometry.colors.push(color)
 				geometry.colors.push(color)
 			}
