@@ -447,7 +447,7 @@ App.prototype.load_clusters = function(filename) {
 			}
 			self.setup_module_combobox()
 
-			//self.network.reposition_clusters()
+			self.network.reposition_clusters()
 			self.network.force_directed_layout()
 
 			//First add Spheres to the scene (nodes)

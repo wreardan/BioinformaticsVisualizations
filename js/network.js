@@ -163,7 +163,7 @@ Network.prototype.reposition_clusters = function() {
 
 //view-source:http://www.aaronvose.net/phytree3d/
 var FORCE_SCALE = 5.0
-var GRAV_STRENGTH = 10.0
+var GRAV_STRENGTH = 1.0
 var BAND_STRENGTH = 0.001
 
 //http://en.wikipedia.org/wiki/Hooke's_law
