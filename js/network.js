@@ -17,6 +17,7 @@ UW-Madison Bioinformatics
 function NetworkNode(name, type) {
 	this.name = name
 	this.position = random_point_on_sphere(20.0)
+	this.velocity = new THREE.Vector3()
 	this.edges = []
 	this.type = type
 	this.cluster = null
@@ -157,6 +158,87 @@ Network.prototype.reposition_clusters = function() {
 			node.position.copy(position)
 			positions.splice(position_index, 1)
 		}
+	}
+}
+
+//view-source:http://www.aaronvose.net/phytree3d/
+var FORCE_SCALE = 5.0
+var GRAV_STRENGTH = 10.0
+var BAND_STRENGTH = 0.001
+
+//http://en.wikipedia.org/wiki/Hooke's_law
+//http://en.wikipedia.org/wiki/Coulomb%27s_law
+var COULUMBS_CONSTANT = 8987551787.3681764
+
+function hookes_law(node) {
+	var v = new THREE.Vector3()
+	//Apply Hooke's Law (Spring) on edges
+	for(var j = 0; j < node.edges.length; j++) {
+		var edge = node.edges[j]
+		//short hand for gene/regulator positions
+		var rp = edge.regulator.position
+		var gp = edge.gene.position
+		//hooke's law
+		//normalized vector from edge
+		v.subVectors(gp, rp)
+		v.normalize()
+		//add to velocity
+		var d = rp.distanceTo(gp)
+		v.multiplyScalar(d*BAND_STRENGTH*FORCE_SCALE)
+		node.velocity.add(v)
+	}
+}
+
+Network.prototype.coulumbs_law = function(node) {
+	var v = new THREE.Vector3()
+	var total = new THREE.Vector3()
+	//console.log('before %s', vec_to_string(node.velocity))
+	//Apply Colulomb's Law against all OTHER nodes
+	for(var other_name in this.node_map) {
+		var other = this.node_map[other_name]
+		//dont apply to ourself
+		if(node.name != other.name) {
+			//coulumb's law
+			//get normalized vector between node and other
+			v.subVectors(node.position, other.position)
+			v.normalize()
+			var d = node.position.distanceTo(other.position)
+			v.multiplyScalar(1.0 / (d*d) * GRAV_STRENGTH*FORCE_SCALE)
+			total.add(v)
+		}
+	}
+	//Normalize velocity by number of nodes
+	total.divideScalar(this.num_nodes)
+	node.velocity.add(total)
+	//console.log('after %s', vec_to_string(node.velocity))
+}
+
+function vec_to_string(vector) {
+	var result = '(' + vector.x + ', ' + vector.y + ', ' + vector.z + ')'
+	return result
+}
+
+Network.prototype.apply_velocity = function() {
+	for(var node_name in this.node_map) {
+		var node = this.node_map[node_name]
+		node.position.add(node.velocity)
+		//console.log('position: ' + vec_to_string(node.position))
+		//console.log('velocity: ' + vec_to_string(node.velocity))
+	}
+}
+
+Network.prototype.force_directed_layout = function() {
+	//Concept:
+	//Multiple Iterations
+	var num_iterations = 10
+	for(var i = 0; i < num_iterations; i++) {
+		//For each Node in Graph:
+		for(var name in this.node_map) {
+			var node = this.node_map[name]
+			hookes_law(node)
+			this.coulumbs_law(node)
+		}
+		this.apply_velocity()
 	}
 }
 

@@ -130,6 +130,15 @@ var random_point_on_sphere = function(radius) {
 	var coords = random_spherical_coords()
 	return spherical_to_cartesian(coords, radius)
 }
+//picks a random point from -scale/2 to scale/2 for x,y,z
+var random_point = function(scale) {
+	if(!scale) scale = 1.0
+	var x = Math.floor(Math.random() * scale) - scale/2.0
+	var y = Math.floor(Math.random() * scale) - scale/2.0
+	var z = Math.floor(Math.random() * scale) - scale/2.0
+	var point = new THREE.Vector3(x,y,z)
+	return point
+}
 //Random integer
 var random_int = function(max) {
 	return Math.floor(Math.random() * max)
