@@ -162,7 +162,7 @@ Network.prototype.reposition_clusters = function() {
 }
 
 //view-source:http://www.aaronvose.net/phytree3d/
-var FORCE_SCALE = 5.0
+var FORCE_SCALE = 1.0
 var GRAV_STRENGTH = 1.0
 var BAND_STRENGTH = 0.001
 
@@ -184,6 +184,7 @@ function hookes_law(node) {
 		v.normalize()
 		//add to velocity
 		var d = rp.distanceTo(gp)
+		//Force = distance * constant (k)
 		v.multiplyScalar(d*BAND_STRENGTH*FORCE_SCALE)
 		node.velocity.add(v)
 	}
@@ -203,6 +204,7 @@ Network.prototype.coulumbs_law = function(node) {
 			v.subVectors(node.position, other.position)
 			v.normalize()
 			var d = node.position.distanceTo(other.position)
+			//force = 1/distance^2 * k
 			v.multiplyScalar(1.0 / (d*d) * GRAV_STRENGTH*FORCE_SCALE)
 			total.add(v)
 		}
