@@ -12,9 +12,9 @@ var fs = require('fs')
 var THREE = require('three')
 
 //Legacy style include
-var util_script = fs.readFileSync('./util.js', 'utf8')
+var util_script = fs.readFileSync('./js/util.js', 'utf8')
 eval(util_script)
-var network_script = fs.readFileSync('./network.js', 'utf8')
+var network_script = fs.readFileSync('./js/network.js', 'utf8')
 eval(network_script)
 
 //Read Network
@@ -23,7 +23,6 @@ var network = new Network()
 var network_filename = process.argv[2]
 var network_data = fs.readFileSync(network_filename, 'utf8')
 var network_table = parse_tab_data(network_data)
-debugger
 network.init_from_table(network_table)
 
 //Get cluster assignments
