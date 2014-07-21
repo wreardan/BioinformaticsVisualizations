@@ -166,3 +166,18 @@ Array.prototype.extend = function(other) {
 		this.push(element)
 	}
 }
+
+//get a javascript table from tab-seperated data
+var parse_tab_data = function(data) {
+	//split by line
+	var lines = data.split('\n')
+	//split by tab
+	var table = []
+	for(var i = 0; i < lines.length; i++) {
+		var row = lines[i].split("\t")
+		if(row.length > 1) {
+			table.push(row)
+		}
+	}
+	return table
+}

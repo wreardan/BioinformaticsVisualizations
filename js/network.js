@@ -84,6 +84,16 @@ Network.prototype.init_from_table = function(table) {
 	}
 }
 
+//Initialize clusters from a data table: [gene_name, cluster_id]
+Network.prototype.init_clusters = function(table) {
+	for(var i = 0; i < table.length; i++) {
+		var row = table[i]
+		var gene_name = row[0]
+		var cluster_id = row[1]
+		this.assign_gene_to_cluster(gene_name, cluster_id)
+	}
+}
+
 //Create a list of icosahedron postions that satisfies the constraint of
 //being able to fit 'num_elements'
 Network.prototype.build_iso_sphere_positions = function(radius, num_elements, scene) {
@@ -244,7 +254,7 @@ Network.prototype.force_directed_layout = function() {
 	}
 }
 
-Network.prototype.get_iso_positions = function() {
+Network.prototype.get_iso_positions = function(scene) {
 	//Build iso positions if not already
 	if(!this.iso_positions) { //todo: check length <
 		var num_nodes = this.num_nodes * 2
@@ -260,7 +270,7 @@ Network.prototype.get_iso_positions = function() {
 //Reposition regulators randomly around an Icosahedron
 Network.prototype.reposition_regulators = function(scene) {
 	//randomly assign regulators to iso_positions
-	var position_list = this.get_iso_positions()
+	var position_list = this.get_iso_positions(scene)
 	for(var key in this.node_map) {
 		var node = this.node_map[key]
 		if(node.type == 'regulator') {
@@ -383,5 +393,32 @@ Network.prototype.highlight_cluster = function(cluster_id) {
 	for(var i = 0; i < cluster.length; i++) {
 		var node = cluster[i]
 		node.highlighted = true
+	}
+}
+
+//output Network positions to tab-seperated string
+//Gene	X_Position	Y_Position	Z_Position
+Network.prototype.dump_positions = function() {
+	var result = []
+	for(var key in this.node_map) {
+		var node = this.node_map[key]
+		var row = node.name + '\t' + node.position.x + '\t' + node.position.y + '\t' + node.position.z
+		result.push(row)
+	}
+	return result.join('\n')
+}
+
+//Load in positions from a table
+//Gene	X_Position	Y_Position	Z_Position
+Network.prototype.load_positions = function(table) {
+	for(var i = 0; i < table.length; i++) {
+		var row = table[i]
+		var name = row[0]
+		var x = new Number(row[1])
+		var y = new Number(row[2])
+		var z = new Number(row[3])
+
+		var gene = this.node_map[name]
+		gene.position.set(x, y, z)
 	}
 }

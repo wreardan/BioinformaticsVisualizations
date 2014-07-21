@@ -7,21 +7,6 @@ function App() {
 	this.draw_all = false
 }
 
-//get a javascript table from tab-seperated data
-App.prototype.parse_tab_data = function(data) {
-	//split by line
-	var lines = data.split('\n')
-	//split by tab
-	var table = []
-	for(var i = 0; i < lines.length; i++) {
-		var row = lines[i].split("\t")
-		if(row.length > 1) {
-			table.push(row)
-		}
-	}
-	return table
-}
-
 App.prototype.add_nodes_to_geometry = function(all_geometry, nodes, all_materials, material_index) {
 	//Sphere Properties
 	var sphere_size = 0.1
@@ -432,22 +417,32 @@ App.prototype.setup_module_combobox = function() {
 	})
 }
 
+//Load the Network's positions in from a file
+App.prototype.load_positions = function(filename, callback) {
+	var self = this
+	$.ajax({
+		url: filename,
+		data: {},
+		success: function(data) {
+			var table = parse_tab_data(data)
+			self.network.load_positions(table)
+			callback()
+		}
+	})
+}
+
+//This loads the clusters in from a file
 App.prototype.load_clusters = function(filename) {
 	var self = this
 	$.ajax({
 		url: filename,
 		data: {},
 		success: function(data) {
-			var table = self.parse_tab_data(data)
-			for(var i = 0; i < table.length; i++) {
-				var row = table[i]
-				var gene_name = row[0]
-				var cluster_id = row[1]
-				self.network.assign_gene_to_cluster(gene_name, cluster_id)
-			}
+			var table = parse_tab_data(data)
+			self.network.init_clusters(table)
 			self.setup_module_combobox()
 
-			self.network.reposition_clusters()
+			//self.network.reposition_clusters()
 			//self.network.force_directed_layout()
 
 			//First add Spheres to the scene (nodes)
@@ -458,7 +453,7 @@ App.prototype.load_clusters = function(filename) {
 	})
 }
 
-App.prototype.load_data = function(filename, clusters_filename) {
+App.prototype.load_data = function(filename, clusters_filename, positions_filename) {
 	console.log("loading data from file '%s'", filename)
 
 	//Load in data
@@ -469,7 +464,7 @@ App.prototype.load_data = function(filename, clusters_filename) {
 		success: function(data) {
 
 			//Populate Network
-			var table = self.parse_tab_data(data)
+			var table = parse_tab_data(data)
 			self.network = new Network()
 			self.network.init_from_table(table)
 
@@ -496,7 +491,15 @@ App.prototype.load_data = function(filename, clusters_filename) {
 			self.setup_regulator_search()
 			self.setup_gene_search()
 
-			if(clusters_filename) {
+			//setup positions
+			if(positions_filename) {
+				self.load_positions(positions_filename, function() {
+					self.load_clusters(clusters_filename)
+				})
+			}
+
+			//load in clusters
+			else if(clusters_filename) {
 				self.load_clusters(clusters_filename)
 			}
 

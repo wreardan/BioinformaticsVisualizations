@@ -1,4 +1,5 @@
 //http://stackoverflow.com/questions/20792445/calculate-rgb-value-for-a-range-of-values-to-create-heat-map
+//ported from Python version
 var colors_rgb = [
 	[0, 0, 200],
 	[0, 0, 64],
