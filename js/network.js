@@ -239,10 +239,9 @@ Network.prototype.apply_velocity = function() {
 	}
 }
 
-Network.prototype.force_directed_layout = function() {
-	//Concept:
+//Lay out the network as a Force-Directed Model
+Network.prototype.force_directed_layout = function(num_iterations) {
 	//Multiple Iterations
-	var num_iterations = 10
 	for(var i = 0; i < num_iterations; i++) {
 		//For each Node in Graph:
 		for(var name in this.node_map) {

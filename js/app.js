@@ -442,8 +442,8 @@ App.prototype.load_clusters = function(filename) {
 			self.network.init_clusters(table)
 			self.setup_module_combobox()
 
-			self.network.reposition_clusters()
-			//self.network.force_directed_layout()
+			//self.network.reposition_clusters()
+			//self.network.force_directed_layout(10)
 
 			//First add Spheres to the scene (nodes)
 			self.build_spheres(self.network)

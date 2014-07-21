@@ -33,7 +33,8 @@ network.init_clusters(cluster_table)
 
 //Compute force-directed graph positions
 network.reposition_clusters()
-network.force_directed_layout()
+var num_iterations = 100
+network.force_directed_layout(num_iterations)
 
 //Dump positions
 var output_filename = process.argv[4]
