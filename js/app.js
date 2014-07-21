@@ -442,7 +442,7 @@ App.prototype.load_clusters = function(filename) {
 			self.network.init_clusters(table)
 			self.setup_module_combobox()
 
-			//self.network.reposition_clusters()
+			self.network.reposition_clusters()
 			//self.network.force_directed_layout()
 
 			//First add Spheres to the scene (nodes)
@@ -492,11 +492,14 @@ App.prototype.load_data = function(filename, clusters_filename, positions_filena
 			self.setup_gene_search()
 
 			//setup positions
+			/*
 			if(positions_filename) {
 				self.load_positions(positions_filename, function() {
 					self.load_clusters(clusters_filename)
 				})
 			}
+			*/
+			if(false){}
 
 			//load in clusters
 			else if(clusters_filename) {
