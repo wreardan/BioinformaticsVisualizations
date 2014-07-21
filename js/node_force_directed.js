@@ -6,6 +6,12 @@
 //Linux Packaged Example: nodejs ./node_force_directed.js network.tab clusters.tab output.tab
 //Windows/Mac Example: node ./node_force_directed.js network.tab clusters.tab output.tab
 
+//Force-Directed Parameters
+var NUM_ITERATIONS = 100
+var FORCE_SCALE = 50.0
+var GRAV_STRENGTH = 10.0
+var BAND_STRENGTH = 0.001
+
 //Include the FileSystem module
 var fs = require('fs')
 
@@ -33,8 +39,7 @@ network.init_clusters(cluster_table)
 
 //Compute force-directed graph positions
 network.reposition_clusters()
-var num_iterations = 100
-network.force_directed_layout(num_iterations)
+network.force_directed_layout(NUM_ITERATIONS, FORCE_SCALE, GRAV_STRENGTH, BAND_STRENGTH)
 
 //Dump positions
 var output_filename = process.argv[4]

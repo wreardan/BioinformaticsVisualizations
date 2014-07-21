@@ -172,15 +172,16 @@ Network.prototype.reposition_clusters = function() {
 }
 
 //view-source:http://www.aaronvose.net/phytree3d/
-var FORCE_SCALE = 1.0
-var GRAV_STRENGTH = 1.0
+/*
+var FORCE_SCALE = 50.0
+var GRAV_STRENGTH = 10.0
 var BAND_STRENGTH = 0.001
-
+*/
 //http://en.wikipedia.org/wiki/Hooke's_law
 //http://en.wikipedia.org/wiki/Coulomb%27s_law
 var COULUMBS_CONSTANT = 8987551787.3681764
 
-function hookes_law(node) {
+function hookes_law(node, BAND_STRENGTH, FORCE_SCALE) {
 	var v = new THREE.Vector3()
 	//Apply Hooke's Law (Spring) on edges
 	for(var j = 0; j < node.edges.length; j++) {
@@ -200,7 +201,7 @@ function hookes_law(node) {
 	}
 }
 
-Network.prototype.coulumbs_law = function(node) {
+Network.prototype.coulumbs_law = function(node, GRAV_STRENGTH, FORCE_SCALE) {
 	var v = new THREE.Vector3()
 	var total = new THREE.Vector3()
 	//console.log('before %s', vec_to_string(node.velocity))
@@ -240,14 +241,14 @@ Network.prototype.apply_velocity = function() {
 }
 
 //Lay out the network as a Force-Directed Model
-Network.prototype.force_directed_layout = function(num_iterations) {
+Network.prototype.force_directed_layout = function(num_iterations, force_scale, gravity_strength, band_strength) {
 	//Multiple Iterations
 	for(var i = 0; i < num_iterations; i++) {
 		//For each Node in Graph:
 		for(var name in this.node_map) {
 			var node = this.node_map[name]
-			hookes_law(node)
-			this.coulumbs_law(node)
+			hookes_law(node, band_strength, force_scale)
+			this.coulumbs_law(node, gravity_strength, force_scale)
 		}
 		this.apply_velocity()
 	}
