@@ -127,17 +127,17 @@ Alignment.prototype.algorithm_step = function(step) {
 	var best = Math.max.apply(null, entries)
 	this.matrix[y][x] = best
 
-	//add backpointer(s)
+	//add backpointer
 	var from = [x,y]
 	if(match >= best) {
 		var to = [x-1,y-1]
 		this.backpointers[from] = to
 	}
-	if(up >= best) {
+	else if(up >= best) {
 		var to = [x,y-1]
 		this.backpointers[from] = to
 	}
-	if(left >= best) {
+	else if(left >= best) {
 		var to = [x-1,y]
 		this.backpointers[from] = to
 	}
@@ -161,8 +161,7 @@ Alignment.prototype.backtrace_step = function(step) {
 
 
 
-	//termination
-	//break when we hit 0,0
+	//global termination - break when we hit 0,0
 	var bp = this.current_backpointer
 	if(bp[0] == 0 && bp[1] == 0) {
 		this.done = true
@@ -172,6 +171,7 @@ Alignment.prototype.backtrace_step = function(step) {
 	//traceback
 	bp = this.backpointers[bp]
 
+	//local termination - break when no backpointers left
 	if(!this.current_backpointer) {
 		if(this.local_align) {
 			this.done = true
@@ -295,11 +295,11 @@ function main() {
 	context = canvas.getContext('2d')
 
 	//global alignment slides
-	//var a = 'AGC'
-	//var b = 'AAAC'
+	var a = 'AGC'
+	var b = 'AAAC'
 	//local alignment slides
-	var a = 'AAGA'
-	var b = 'TTAAG'
+	//var a = 'AAGA'
+	//var b = 'TTAAG'
 	alignment = new Alignment(a, b)
 
 	setInterval(draw, 300)
