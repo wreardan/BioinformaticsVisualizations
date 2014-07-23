@@ -17,9 +17,12 @@ function Alignment(a, b) {
 
 	//Stepping Mechanism
 	this.step_num = 0
+	this.done = false
+	this.current_backpointer = null
+	this.optimal_alignment = []
 
 	//Local align?
-	this.local_align = true
+	this.local_align = false
 
 	//the mighty matrix
 	this.matrix = null
@@ -54,17 +57,22 @@ Alignment.prototype.step = function() {
 		this.algorithm_step(this.step_num - init_size)
 	}
 	//Back-Trace
-	else {
+	else if(!this.done) {
 		this.backtrace_step(this.step_num - init_size - algorithm_size)
+	}
+	else {
+		return
 	}
 	this.step_num += 1
 }
 
 //The Initialization portion of the algorithm
 Alignment.prototype.initialization_step = function(step) {
+	var from, to
 	//first cell
 	if(step == 0) {
 		this.matrix[0][0] = 0
+		return //no backpointer for 0,0
 	}
 	//horizontal init
 	else if(step < this.width) {
@@ -74,6 +82,8 @@ Alignment.prototype.initialization_step = function(step) {
 		else {
 			this.matrix[0][step] = step * this.gap_penalty
 		}
+		from = [step,0]
+		to = [step-1,0]
 	}
 	//vertical init
 	else {
@@ -84,7 +94,10 @@ Alignment.prototype.initialization_step = function(step) {
 		else {
 			this.matrix[y][0] = y * this.gap_penalty
 		}
+		from = [0,y]
+		to = [0,y-1]
 	}
+	this.backpointers[from] = to
 }
 
 //score two positions
@@ -130,9 +143,43 @@ Alignment.prototype.algorithm_step = function(step) {
 	}
 }
 
-//
+//Backtrace to yield the optimal alignment
 Alignment.prototype.backtrace_step = function(step) {
+	//initialize
+	if(!this.current_backpointer) {
+		if(this.local_align) {
+			//todo: find maximal element, set this as backpointer
+		}
+		else {
+			//start at the bottom right of the matrix
+			this.current_backpointer = [this.width-1, this.height-1]
+		}
+	}
 
+	//add current node to optimal path
+	this.optimal_alignment.push(this.current_backpointer)
+
+
+
+	//termination
+	//break when we hit 0,0
+	var bp = this.current_backpointer
+	if(bp[0] == 0 && bp[1] == 0) {
+		this.done = true
+		return
+	}
+
+	//traceback
+	bp = this.backpointers[bp]
+
+	if(!this.current_backpointer) {
+		if(this.local_align) {
+			this.done = true
+			return
+		}
+	}
+
+	this.current_backpointer = bp
 }
 
 //Draw the Alignment to a canvas context
@@ -145,6 +192,9 @@ Alignment.prototype.draw = function(canvas, context) {
 
 	//draw the grid
 	this.draw_grid(canvas, context, cell_width, cell_height)
+
+	//draw backpointers
+	this.draw_backpointers(canvas, context, cell_width, cell_height)
 
 	//Setup Text properties
 	context.font = '32px Verdana'
@@ -163,8 +213,9 @@ Alignment.prototype.draw = function(canvas, context) {
 	}
 }
 
-//Draw a grid of lines to display a 'matrix'
+//Draw a grid of lines to display a 'matrix' to a Canvas
 Alignment.prototype.draw_grid = function(canvas, context, w, h) {
+	context.beginPath()
 	context.strokeStyle = '#101010'
 	context.lineWidth = 10
 	//Draw horizontal lines
@@ -183,11 +234,49 @@ Alignment.prototype.draw_grid = function(canvas, context, w, h) {
 	context.stroke()
 }
 
-//Draw sequences A and B
+//Draw sequences A and B to a Canvas
 Alignment.prototype.draw_sequences = function() {
 
 }
 
+//Draw backpointers to a Canvas
+Alignment.prototype.draw_backpointers = function(canvas, context, w, h) {
+	//Draw all backpointers
+	context.beginPath()
+	context.strokeStyle = '#c01010'
+	for(var from in this.backpointers) {
+		//parse the from string back into x,y number values
+		var tokens = from.split(',')
+		var x1 = Number(tokens[0]) * w + w*4/8
+		var y1 = Number(tokens[1]) * h + h*4/8
+		context.moveTo(x1, y1)
+
+		var to = this.backpointers[from]
+		var x2 = to[0] * w + w*4/8
+		var y2 = to[1] * h + h*4/8
+		context.lineTo(x2, y2)
+	}
+	context.stroke()
+
+	//Draw optimal backpointers
+	context.beginPath()
+	context.strokeStyle = '#10c010'
+	var from = this.optimal_alignment[0]
+	for(var i = 1; i < this.optimal_alignment.length; i++) {
+		var to = this.optimal_alignment[i]
+
+		var x1 = from[0] * w + w/2
+		var y1 = from[1] * h + h/2
+		context.moveTo(x1, y1)
+
+		var x2 = to[0] * w + w/2
+		var y2 = to[1] * h + h/2
+		context.lineTo(x2, y2)
+
+		from = to
+	}
+	context.stroke()
+}
 
 
 
@@ -213,5 +302,5 @@ function main() {
 	var b = 'TTAAG'
 	alignment = new Alignment(a, b)
 
-	setInterval(draw, 200)
+	setInterval(draw, 300)
 }
