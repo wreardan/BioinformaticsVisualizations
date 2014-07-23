@@ -110,6 +110,16 @@ function load_matrix_file(filename, callback) {
 
 }
 
+//Load clusters from a filename
+function load_clusters(filename, callback) {
+	var request = new XMLHttpRequest()
+
+	request.onload = function() {
+		var data = this.responseText
+
+	}
+}
+
 //Called when file(s) are uploaded
 function handle_file_selected(event) {
 	var files = event.target.files

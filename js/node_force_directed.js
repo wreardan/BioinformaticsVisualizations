@@ -12,6 +12,9 @@ var FORCE_SCALE = 50.0
 var GRAV_STRENGTH = 10.0
 var BAND_STRENGTH = 0.001
 
+//Read parameters
+
+
 //Include the FileSystem module
 var fs = require('fs')
 

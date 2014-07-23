@@ -492,14 +492,11 @@ App.prototype.load_data = function(filename, clusters_filename, positions_filena
 			self.setup_gene_search()
 
 			//setup positions
-			/*
 			if(positions_filename) {
 				self.load_positions(positions_filename, function() {
 					self.load_clusters(clusters_filename)
 				})
 			}
-			*/
-			if(false){}
 
 			//load in clusters
 			else if(clusters_filename) {
