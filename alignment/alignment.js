@@ -323,12 +323,12 @@ Alignment.prototype.draw_backpointers = function(canvas, context, w, h) {
 		//parse the from string back into x,y number values
 		var tokens = from.split(',')
 		var coords = [Number(tokens[0]), Number(tokens[1])]
-		var x1 = (coords[0] + 1.2) * w
+		var x1 = (coords[0] + 1.5) * w
 		var y1 = (coords[1] + 1.5) * h
 		context.moveTo(x1, y1)
 
 		var to = this.backpointers[from]
-		var x2 = (to[0] + 1.2) * w
+		var x2 = (to[0] + 1.5) * w
 		var y2 = (to[1] + 1.5) * h
 		context.lineTo(x2, y2)
 	}
@@ -341,11 +341,11 @@ Alignment.prototype.draw_backpointers = function(canvas, context, w, h) {
 	for(var i = 1; i < this.optimal_alignment.length; i++) {
 		var to = this.optimal_alignment[i]
 
-		var x1 = (from[0] + 1.2) * w
+		var x1 = (from[0] + 1.5) * w
 		var y1 = (from[1] + 1.5) * h
 		context.moveTo(x1, y1)
 
-		var x2 = (to[0] + 1.2) * w
+		var x2 = (to[0] + 1.5) * w
 		var y2 = (to[1] + 1.5) * h
 		context.lineTo(x2, y2)
 
