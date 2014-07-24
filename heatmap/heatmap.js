@@ -45,8 +45,8 @@ function draw_matrix(matrix) {
 	var context = canvas.getContext('2d')
 
 	//set drawing parameters
-	var sampling_interval = 6
-	var width = 20
+	var sampling_interval = Math.floor(matrix.length / canvas.height)
+	var width = Math.floor(canvas.width / matrix[0].length)
 	
 	//loop through matrix rows and columns
 	for(var row = 0; row < matrix.length; row += sampling_interval) {
@@ -58,7 +58,7 @@ function draw_matrix(matrix) {
 				context.fillStyle = 'rgb(0,0,0)'
 			}
 			else {
-				var color = convert_to_rgb(-4.5, 4.5, value, colors_rgb)
+				var color = convert_to_rgb(-10, 10, value, colors_rgb)
 				context.fillStyle = convert_rgb_to_fillstyle(color)
 			}
 			
@@ -86,7 +86,12 @@ function load_matrix(data) {
 		var row = []
 		for(var j = 0; j < columns.length; j++) {
 			var value = datatype(columns[j])
-			row.push(value)
+			if(isNaN(value)) {
+				console.log('%s is not a number', columns[j])
+			}
+			else {
+				row.push(value)
+			}
 		}
 		matrix.push(row)
 	}

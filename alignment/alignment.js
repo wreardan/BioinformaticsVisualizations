@@ -262,7 +262,7 @@ Alignment.prototype.draw = function(canvas, context) {
 		for(var x = 0; x < this.width; x++) {
 			var value = this.matrix[y][x]
 			if(typeof(value) == 'number') {
-				var tx = (x + 1.5) * cell_width
+				var tx = (x + 1.2) * cell_width
 				var ty = (y + 1.5) * cell_height
 				context.fillText(value.toString(), tx, ty)
 			}
@@ -300,7 +300,7 @@ Alignment.prototype.draw_sequences = function(canvas, context, w, h) {
 	//Draw Sequence A
 	for(var i = 0; i < this.a.length; i++) {
 		var letter = this.a.charAt(i)
-		var x = (i + 2.5) * w
+		var x = (i + 2.2) * w
 		var y = (0.5) * h
 		context.fillText(letter, x, y)
 	}
@@ -323,12 +323,12 @@ Alignment.prototype.draw_backpointers = function(canvas, context, w, h) {
 		//parse the from string back into x,y number values
 		var tokens = from.split(',')
 		var coords = [Number(tokens[0]), Number(tokens[1])]
-		var x1 = (coords[0] + 1.5) * w
+		var x1 = (coords[0] + 1.2) * w
 		var y1 = (coords[1] + 1.5) * h
 		context.moveTo(x1, y1)
 
 		var to = this.backpointers[from]
-		var x2 = (to[0] + 1.5) * w
+		var x2 = (to[0] + 1.2) * w
 		var y2 = (to[1] + 1.5) * h
 		context.lineTo(x2, y2)
 	}
@@ -341,11 +341,11 @@ Alignment.prototype.draw_backpointers = function(canvas, context, w, h) {
 	for(var i = 1; i < this.optimal_alignment.length; i++) {
 		var to = this.optimal_alignment[i]
 
-		var x1 = (from[0] + 1.5) * w
+		var x1 = (from[0] + 1.2) * w
 		var y1 = (from[1] + 1.5) * h
 		context.moveTo(x1, y1)
 
-		var x2 = (to[0] + 1.5) * w
+		var x2 = (to[0] + 1.2) * w
 		var y2 = (to[1] + 1.5) * h
 		context.lineTo(x2, y2)
 
