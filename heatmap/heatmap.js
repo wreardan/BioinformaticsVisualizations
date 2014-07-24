@@ -1,15 +1,37 @@
+//Globals
+var matrix_max
+var matrix_global
+
+var color_scales = {
+	'red_blue_cmap': [
+		[250, 0, 0],
+		[200, 0, 0],
+		[150, 0, 0],
+		[100, 0, 0],
+		[255, 255, 255],
+		[0, 0, 100],
+		[0, 0, 150],
+		[0, 0, 200],
+		[0, 0, 250]
+	],
+	'red_green_cmap': [
+		[250, 0, 0],
+		[200, 0, 0],
+		[150, 0, 0],
+		[100, 0, 0],
+		[255, 255, 255],
+		[0, 100, 0],
+		[0, 150, 0],
+		[0, 200, 0],
+		[0, 250, 0]
+	],
+}
+
 //http://stackoverflow.com/questions/20792445/calculate-rgb-value-for-a-range-of-values-to-create-heat-map
 //ported from Python version
-var colors_rgb = [
-	[0, 0, 200],
-	[0, 0, 64],
-	[255, 255, 255],
-	[64, 0, 0],
-	[200, 0, 0]
-]
 //this function interpolates a value from a color range
 function convert_to_rgb(minval, maxval, val, colors) {
-	var result = {'r': 0, 'g': 0, 'b': 0}
+	var result = {r:0,g:0,b:0}
 	
 	var max_index = colors.length-1
 	var v = Number(val-minval) / Number(maxval-minval) * max_index
@@ -38,8 +60,6 @@ function convert_rgb_to_fillstyle(color) {
 	return fill
 }
 
-var matrix_global
-
 //draw matrix to canvas
 function draw_matrix(matrix) {
 	matrix_global = matrix
@@ -61,8 +81,9 @@ function draw_matrix(matrix) {
 				context.fillStyle = 'rgb(0,0,0)'
 			}
 			else {
-				var color = convert_to_rgb(-10, 10, value, colors_rgb)
-				context.fillStyle = convert_rgb_to_fillstyle(color)
+				var color_scale = color_scales['red_green_cmap']
+				var color = convert_to_rgb(-matrix_max, matrix_max, value, color_scale)
+				context.fillStyle = convert_rgb_to_fillstyle(color, 'rgb')
 			}
 			
 			//draw heatmap rectangle
@@ -73,9 +94,14 @@ function draw_matrix(matrix) {
 
 //load a matrix from a datafile then do callback(matrix)
 function load_matrix(data) {
+	//reset minval,maxval
+	matrix_min = 1000000
+	matrix_max = -1000000
+
 	//future parameters
 	var delimiter = '\t'
 	var datatype = Number
+	var marker = -100
 
 	//the resulting parsed matrix
 	var matrix = []
@@ -94,6 +120,11 @@ function load_matrix(data) {
 			}
 			else {
 				row.push(value)
+				//Check for min/max
+				if(value != marker) {
+					if(Math.abs(value) > matrix_max)
+						matrix_max = value
+				}
 			}
 		}
 		matrix.push(row)
