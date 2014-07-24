@@ -6,8 +6,10 @@
 <body onload='main()'>
 <canvas id='canvas' width='600' height='800'></canvas>
 <div id='upload_div'>
-<input type='file' id='files' name='files[]' multiple />
-
+<input type='file' id='files' name='files[]' multiple /><br />
+<input type='text' id='canvas_width' name='canvas_width' value='600' /> x
+<input type='text' id='canvas_height' name='canvas_height' value='800' />
+<button onclick='resize_heatmap()'>Resize</button>
 </div>
 </body>
 </html

@@ -38,8 +38,11 @@ function convert_rgb_to_fillstyle(color) {
 	return fill
 }
 
+var matrix_global
+
 //draw matrix to canvas
 function draw_matrix(matrix) {
+	matrix_global = matrix
 	//get canvas and context elements from the DOM
 	var canvas = document.getElementById('canvas')
 	var context = canvas.getContext('2d')
@@ -144,6 +147,18 @@ function handle_file_selected(event) {
 			draw_matrix(matrix)
 		}
 		reader.readAsText(file, encoding)
+	}
+}
+
+//Resize the canvas with parameters
+function resize_heatmap() {
+	var canvas = document.getElementById('canvas')
+	var width = Number(document.getElementById('canvas_width').value)
+	var height = Number(document.getElementById('canvas_height').value)
+	if(width && height) {
+		canvas.width = width
+		canvas.height = height
+		draw_matrix(matrix_global)
 	}
 }
 
