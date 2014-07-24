@@ -34,6 +34,27 @@ function Alignment(a, b) {
 	this.build_matrix()
 }
 
+//reset the parameters of the model
+Alignment.prototype.reset = function(a, b, gap_penalty, match, mismatch, local_align) {
+	//Reset Parameters
+	this.a = a
+	this.width = a.length + 1
+	this.b = b
+	this.height = b.length + 1
+	this.match = match
+	this.mismatch = mismatch
+	this.gap_penalty = gap_penalty
+	this.local_align = local_align
+
+	//Reset State
+	this.step_num = 0
+	this.done = false
+	this.current_backpointer = null
+	this.optimal_alignment = []
+	this.backpointers = {}
+	this.build_matrix()
+}
+
 //Build an empty matrix
 Alignment.prototype.build_matrix = function() {
 	this.matrix = []
@@ -71,6 +92,16 @@ Alignment.prototype.initialization_step = function(step) {
 	var from, to
 	//first cell
 	if(step == 0) {
+		//setup equation display
+		if(this.local_align) {
+			document.getElementById('local_equation').style.display = ''
+			document.getElementById('global_equation').style.display = 'none'
+		}
+		else {
+			document.getElementById('local_equation').style.display = 'none'
+			document.getElementById('global_equation').style.display = ''
+		}
+		//Set [0][0]
 		this.matrix[0][0] = 0
 		return //no backpointer for 0,0
 	}
@@ -97,7 +128,9 @@ Alignment.prototype.initialization_step = function(step) {
 		from = [0,y]
 		to = [0,y-1]
 	}
-	this.backpointers[from] = to
+	if(!this.local_align) {
+		this.backpointers[from] = to
+	}
 }
 
 //score two positions
@@ -143,12 +176,33 @@ Alignment.prototype.algorithm_step = function(step) {
 	}
 }
 
+Alignment.prototype.find_maximal = function() {
+	var max = -10000000
+	var max_x, max_y
+	for(var y = 0; y < this.height; y++) {
+		for(var x = 0; x < this.width; x++) {
+			var value = this.matrix[y][x]
+			if(value > max) {
+				max_x = x
+				max_y = y
+				max = value
+			}
+		}
+	}
+	if(max_x && max_y) {
+		return [max_x, max_y]
+	} else {
+		throw('no max found or invalid coordinates detected')
+	}
+}
+
 //Backtrace to yield the optimal alignment
 Alignment.prototype.backtrace_step = function(step) {
 	//initialize
 	if(!this.current_backpointer) {
 		if(this.local_align) {
-			//todo: find maximal element, set this as backpointer
+			//todo: find maximal element, set this as backpointer\
+			this.current_backpointer = this.find_maximal()
 		}
 		else {
 			//start at the bottom right of the matrix
@@ -187,14 +241,17 @@ Alignment.prototype.draw = function(canvas, context) {
 	var width = canvas.width
 	var height = canvas.height
 
-	var cell_width = width / this.width
-	var cell_height = height / this.height
+	var cell_width = width / (this.width + 1)
+	var cell_height = height / (this.height + 1)
 
 	//draw the grid
 	this.draw_grid(canvas, context, cell_width, cell_height)
 
 	//draw backpointers
 	this.draw_backpointers(canvas, context, cell_width, cell_height)
+
+	//draw sequence letters
+	this.draw_sequences(canvas, context, cell_width, cell_height)
 
 	//Setup Text properties
 	context.font = '32px Verdana'
@@ -205,8 +262,8 @@ Alignment.prototype.draw = function(canvas, context) {
 		for(var x = 0; x < this.width; x++) {
 			var value = this.matrix[y][x]
 			if(typeof(value) == 'number') {
-				var tx = (x + 0.5) * cell_width
-				var ty = (y + 0.5) * cell_height
+				var tx = (x + 1.5) * cell_width
+				var ty = (y + 1.5) * cell_height
 				context.fillText(value.toString(), tx, ty)
 			}
 		}
@@ -219,14 +276,14 @@ Alignment.prototype.draw_grid = function(canvas, context, w, h) {
 	context.strokeStyle = '#101010'
 	context.lineWidth = 10
 	//Draw horizontal lines
-	for(var y = 0; y <= this.height; y += 1) {
+	for(var y = 0; y < this.height + 2; y += 1) {
 		var cy = y * h
 		context.moveTo(0, cy)
 		context.lineTo(canvas.width-1, cy)
 	}
 
 	//Draw vertical lines
-	for(var x = 0; x <= this.width; x += 1) {
+	for(var x = 0; x < this.width + 2; x += 1) {
 		var cx = x * w
 		context.moveTo(cx, 0)
 		context.lineTo(cx, canvas.height-1)
@@ -235,8 +292,26 @@ Alignment.prototype.draw_grid = function(canvas, context, w, h) {
 }
 
 //Draw sequences A and B to a Canvas
-Alignment.prototype.draw_sequences = function() {
+Alignment.prototype.draw_sequences = function(canvas, context, w, h) {
+	//Setup Text properties
+	context.font = '32px Verdana'
+	context.fillStyle = 'rgb(0,0,0)'
 
+	//Draw Sequence A
+	for(var i = 0; i < this.a.length; i++) {
+		var letter = this.a.charAt(i)
+		var x = (i + 2.5) * w
+		var y = (0.5) * h
+		context.fillText(letter, x, y)
+	}
+
+	//Draw Sequence B
+	for(var i = 0; i < this.b.length; i++) {
+		var letter = this.b.charAt(i)
+		var x = (0.5) * w
+		var y = (i + 2.5) * h
+		context.fillText(letter, x, y)
+	}
 }
 
 //Draw backpointers to a Canvas
@@ -247,13 +322,14 @@ Alignment.prototype.draw_backpointers = function(canvas, context, w, h) {
 	for(var from in this.backpointers) {
 		//parse the from string back into x,y number values
 		var tokens = from.split(',')
-		var x1 = Number(tokens[0]) * w + w*4/8
-		var y1 = Number(tokens[1]) * h + h*4/8
+		var coords = [Number(tokens[0]), Number(tokens[1])]
+		var x1 = (coords[0] + 1.5) * w
+		var y1 = (coords[1] + 1.5) * h
 		context.moveTo(x1, y1)
 
 		var to = this.backpointers[from]
-		var x2 = to[0] * w + w*4/8
-		var y2 = to[1] * h + h*4/8
+		var x2 = (to[0] + 1.5) * w
+		var y2 = (to[1] + 1.5) * h
 		context.lineTo(x2, y2)
 	}
 	context.stroke()
@@ -265,12 +341,12 @@ Alignment.prototype.draw_backpointers = function(canvas, context, w, h) {
 	for(var i = 1; i < this.optimal_alignment.length; i++) {
 		var to = this.optimal_alignment[i]
 
-		var x1 = from[0] * w + w/2
-		var y1 = from[1] * h + h/2
+		var x1 = (from[0] + 1.5) * w
+		var y1 = (from[1] + 1.5) * h
 		context.moveTo(x1, y1)
 
-		var x2 = to[0] * w + w/2
-		var y2 = to[1] * h + h/2
+		var x2 = (to[0] + 1.5) * w
+		var y2 = (to[1] + 1.5) * h
 		context.lineTo(x2, y2)
 
 		from = to
@@ -278,8 +354,37 @@ Alignment.prototype.draw_backpointers = function(canvas, context, w, h) {
 	context.stroke()
 }
 
+//called when submit button is clicked
+function reset_alignment() {
+	//Get parameters from Form
+	var x = document.getElementById('x').value
+	var y = document.getElementById('y').value
 
+	//Scoring parameters (gap_penalty is negated for use in alignment)
+	var gap_penalty = -1 * Number(document.getElementById('gap_penalty').value)
+	var match = Number(document.getElementById('match').value)
+	var mismatch = Number(document.getElementById('mismatch').value)
 
+	var local_align = document.getElementById('local_align').checked
+
+	//Reset
+	alignment.reset(x, y, gap_penalty, match, mismatch, local_align)
+
+	//Clear CANVAS
+	context.clearRect(0,0,canvas.width,canvas.height)
+}
+
+//Setup math jax for equation drawing
+function config_math_jax() {
+	MathJax.Hub.Config({
+		config: ["MMLorHTML.js"],
+		jax: ["input/TeX","input/MathML","input/AsciiMath","output/HTML-CSS","output/NativeMML"],
+		extensions: ["tex2jax.js","mml2jax.js","asciimath2jax.js","MathMenu.js","MathZoom.js"],
+		TeX: {
+			extensions: ["AMSmath.js","AMSsymbols.js","noErrors.js","noUndefined.js"]
+		}
+	})
+}
 
 //draw loop
 function draw() {
@@ -295,12 +400,15 @@ function main() {
 	context = canvas.getContext('2d')
 
 	//global alignment slides
-	var a = 'AGC'
-	var b = 'AAAC'
+	//var a = 'AGC'
+	//var b = 'AAAC'
 	//local alignment slides
-	//var a = 'AAGA'
-	//var b = 'TTAAG'
+	var a = 'AAGA'
+	var b = 'TTAAG'
 	alignment = new Alignment(a, b)
 
 	setInterval(draw, 300)
+
+	//setup MathJax
+	config_math_jax()
 }

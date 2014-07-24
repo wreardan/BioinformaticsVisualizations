@@ -1,10 +1,48 @@
 <html>
 <head>
 <title>Alignment Visualizer</title>
+<script src='../lib/MathJax-2.4-latest/MathJax.js'></script>
 <script src='alignment.js'></script>
 </head>
 <body onload='main()'>
 <canvas id='canvas' width='1000' height='800'></canvas>
-
+<div id='parameters' style='float:right;'>
+<form>
+X Sequence: <input id='x' type='text' name='sequence_a' value='AAGA' /><br />
+Y Sequence: <input id='y' type='text' name='sequence_b' value='TTAAG' /><br />
+Gap Penalty (d): <input id='gap_penalty' type='text' name='gap_penalty' value='2' /><br />
+Match Score: <input id='match' type='text' name='match_score' value='1' /><br />
+Mismatch Score: <input id='mismatch' type='text' name='mismatch_score' value='-1' /><br />
+<input id='local_align' type='radio' name='alignment_type' value='local'>Local Alignment</input><br />
+<input type='radio' name='alignment_type' value='global'>Global Alignment</input><br />
+<!--
+<input type='submit' value='Submit' onsubmit='reset_alignment()' /><br />
+-->
+</form>
+<button onclick='reset_alignment()'>Process</button>
+</div>
+<div id='global_equation'>
+$$
+\begin{equation}
+  F(j,i)=max\begin{cases}
+    F(j-1,i-1) + s(x_i,y_j)\\
+    F(j-1,i) - d\\
+    F(j,i-1) - d
+  \end{cases}
+\end{equation}
+$$
+</div>
+<div id='local_equation' style='display:none;'>
+$$
+\begin{equation}
+  F(j,i)=max\begin{cases}
+    F(j-1,i-1) + s(x_i,y_j)\\
+    F(j-1,i) - d\\
+    F(j,i-1) - d\\
+    0
+  \end{cases}
+\end{equation}
+$$
+</div>
 </body>
 </html
