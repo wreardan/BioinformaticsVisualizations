@@ -1,9 +1,10 @@
 //Globals
 var matrix_max
 var matrix_global
+var color_scale_name = 'red_blue'
 
 var color_scales = {
-	'red_blue_cmap': [
+	'red_blue': [
 		[250, 0, 0],
 		[200, 0, 0],
 		[150, 0, 0],
@@ -14,7 +15,7 @@ var color_scales = {
 		[0, 0, 200],
 		[0, 0, 250]
 	],
-	'red_green_cmap': [
+	'red_green': [
 		[250, 0, 0],
 		[200, 0, 0],
 		[150, 0, 0],
@@ -25,6 +26,19 @@ var color_scales = {
 		[0, 200, 0],
 		[0, 250, 0]
 	],
+	//colorbrewer2.org
+	'red_blue_cmap': [
+		[165,15,21],[222,45,38],[251,106,74],[252,174,145],[254,229,217],
+		[239,243,255],[189,215,231],[107,174,214],[49,130,189],[8,81,156]
+	],
+}
+
+//Clamp a value to a range
+//i.e. clamp(2,0,1) = 1, clamp(-1,0,1) = 0
+function clamp(value, min, max) {
+	value = Math.max(value, min)
+	value = Math.min(value, max)
+	return value
 }
 
 //http://stackoverflow.com/questions/20792445/calculate-rgb-value-for-a-range-of-values-to-create-heat-map
@@ -46,6 +60,7 @@ function convert_to_rgb(minval, maxval, val, colors) {
 	var c2 = colors[i2]
 	var f = v - i1
 	//rgb = int(r1 + f*(r2-r1)), int(g1 + f*(g2-g1)), int(b1 + f*(b2-b1))
+	
 	result.r = Math.floor(c1[0] + f*(c2[0] - c1[0]))
 	result.g = Math.floor(c1[1] + f*(c2[1] - c1[1]))
 	result.b = Math.floor(c1[2] + f*(c2[2] - c1[2]))
@@ -81,7 +96,7 @@ function draw_matrix(matrix) {
 				context.fillStyle = 'rgb(0,0,0)'
 			}
 			else {
-				var color_scale = color_scales['red_green_cmap']
+				var color_scale = color_scales['red_blue']
 				var color = convert_to_rgb(-matrix_max, matrix_max, value, color_scale)
 				context.fillStyle = convert_rgb_to_fillstyle(color, 'rgb')
 			}
