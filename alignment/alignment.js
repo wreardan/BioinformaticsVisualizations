@@ -66,6 +66,8 @@ Alignment.prototype.build_matrix = function() {
 
 //Step through the algorithm
 Alignment.prototype.step = function() {
+	//Here lies the algorithm complexity:
+	//Width and Height are N+1 and M+1 respectively
 	var init_size = this.width + this.height - 1
 	var algorithm_size = (this.width - 1) * (this.height - 1)
 	var backtrace_size = Math.max(this.width, this.height)
