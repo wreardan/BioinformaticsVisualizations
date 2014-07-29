@@ -160,10 +160,6 @@ HiddenMarkovModel.prototype.step = function() {
 }
 
 //Run the forward algorithm against the dataset
-HiddenMarkovModel.prototype.forward = function() {
-
-}
-
 HiddenMarkovModel.prototype.init_step = function(step) {
 	//Start State Probability = 1
 	if(step == 0) {
@@ -207,7 +203,6 @@ HiddenMarkovModel.prototype.forward_recurrence = function(step) {
 		if(transition_probability && emission_probability) {
 			probability += transition_probability * emission_probability * previous_probability
 		}
-		if(isNaN(probability)) debugger
 	}
 
 	this.matrix[y][state_id] = probability
@@ -230,17 +225,91 @@ HiddenMarkovModel.prototype.forward_step = function() {
 	//Termination?
 }
 
+//Run the viterbi algorithm to find the most likely Path
+
+HiddenMarkovModel.prototype.viterbi_recurrence = function(step) {
+	//Compute X,Y values from step
+	var w = this.num_states - 1
+	var y = Math.floor(step / w) + 1
+	var state_id = step % w + 1 //this is also the x coordinate
+	var current_state = this.states[state_id]
+
+	//initialize
+	var max_p = 0.0
+	var backpointer = null
+
+	//Compute Recurrence
+	for(var i = 0; i < this.num_states - 1; i++) { //-1 needed???
+		var state = this.states[i]
+
+		var transition_probability = state.transitions[state_id]
+		
+		var emission_probability = 1.0
+		if(current_state.type != 'end') {
+			var letter = this.sequence.charAt(y - 1)
+			emission_probability = current_state.emission_probabilities[letter]
+		}
+
+		var previous_probability = this.matrix[y-1][i]
+
+		if(transition_probability && emission_probability) {
+			var p = transition_probability * emission_probability * previous_probability
+			if(p > max_p) {
+				max_p = p
+				backpointer = i
+			}
+		}
+	}
+
+	console.log(max_p, backpointer, state_id, y)
+
+	this.matrix[y][state_id] = max_p
+	return max_p
+}
+
+//Trace Backpointers to recover most likely states
+HiddenMarkovModel.prototype.viterbi_traceback = function(step) {
+
+}
+
+HiddenMarkovModel.prototype.viterbi_step = function() {
+	//Algorithm Complexity:
+	var init_complexity = this.num_states + this.sequence.length + 2 - 1
+	var recurrence_complexity = (this.num_states - 1) * (this.sequence.length + 1)
+	var traceback_complexity = Math.max(this.num_states, this.sequence.length)
+
+	//Initialization
+	if(this.step_num < init_complexity) {
+		this.init_step(this.step_num)
+	}
+	//Recurrence
+	else if(this.step_num < init_complexity + recurrence_complexity) {
+		this.viterbi_recurrence(this.step_num - init_complexity)
+	}
+	//Traceback
+	else if(this.step_num < init_complexity + recurrence_complexity + traceback_complexity) {
+		this.viterbi_traceback(this.step_num - init_complexity - recurrence_complexity)
+	}
+	else {
+		//do nothing when algorithm is completed
+	}
+}
+
+
 //Run the backward algorithm
-HiddenMarkovModel.prototype.backward = function() {
+HiddenMarkovModel.prototype.backward_recurrence = function(step) {
+	//Compute X,Y values from step
+	var w = this.num_states - 1
+	var y = Math.floor(step / w) + 1
+	var state_id = step % w + 1 //this is also the x coordinate
+	var current_state = this.states[state_id]
+}
+
+HiddenMarkovModel.prototype.backward_step = function() {
 
 }
 
 //Run Expectation Maximization algorithm
 HiddenMarkovModel.prototype.forward_backward = function() {
-
-}
-
-//Run the viterbi algorithm to find the most likely Path
-HiddenMarkovModel.prototype.viterbi = function() {
 
 }

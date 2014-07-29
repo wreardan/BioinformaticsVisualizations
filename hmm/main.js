@@ -22,6 +22,7 @@ function hmm_step() {
 	hmm.draw(canvas, context, dp_canvas, dp_context)
 }
 
+//Globals
 var hmm
 var canvas, context
 var dp_canvas, dp_context

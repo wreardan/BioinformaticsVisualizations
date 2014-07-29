@@ -54,7 +54,7 @@ Matrix.prototype.draw_grid = function(canvas, context, w, h) {
 	//Setup Context
 	context.beginPath()
 	context.strokeStyle = '#101010'
-	context.lineWidth = 10
+	context.lineWidth = 5
 	//Compute max_x, max_y
 	var max_x = (w+1) * (this.columns+1)
 	var max_y = (h+1) * (this.rows+1)
@@ -77,7 +77,7 @@ Matrix.prototype.draw_grid = function(canvas, context, w, h) {
 //Draw the values of elements inside the matrix
 Matrix.prototype.draw_elements = function(canvas, context, w, h) {
 	//Setup Text properties
-	context.font = '32px Verdana'
+	context.font = '18px Verdana'
 	context.fillStyle = 'rgb(0,0,0)'
 
 	//draw the matrix values
@@ -110,7 +110,7 @@ function convert_string_to_list(string_to_convert) {
 //the inputs can also be strings, in which case it will use the characters
 Matrix.prototype.draw_labels = function(canvas, context, w, h) {
 	//Setup Text properties
-	context.font = '32px Verdana'
+	context.font = '18px Verdana'
 	context.fillStyle = 'rgb(0,0,0)'
 
 	//Draw X Labels
