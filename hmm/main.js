@@ -38,9 +38,9 @@ function main() {
 
 	//Load in Transition and Emission Probabilities
 	load_data('results/emission2.txt', function(emission_string) {
-		console.log('emissions:\n%s\n', emission_string)
+		//console.log('emissions:\n%s\n', emission_string)
 		load_data('results/transition2.txt', function(transition_string) {
-			console.log('transitions:\n%s\n', transition_string)
+			//console.log('transitions:\n%s\n', transition_string)
 			//Build Model
 			hmm = new HiddenMarkovModel()
 			hmm.build_model(emission_string, transition_string)

@@ -39,14 +39,14 @@ Matrix.prototype.draw = function(canvas, context) {
 	var width = canvas.width
 	var height = canvas.height
 
-	var cell_width = width / (this.columns + 1)
-	var cell_height = height / (this.rows + 1)
+	this.cell_width = width / (this.columns + 1)
+	this.cell_height = height / (this.rows + 1)
 
-	this.draw_grid(canvas, context, cell_width, cell_height)
+	this.draw_grid(canvas, context, this.cell_width, this.cell_height)
 
-	this.draw_elements(canvas, context, cell_width, cell_height)
+	this.draw_elements(canvas, context, this.cell_width, this.cell_height)
 
-	this.draw_labels(canvas, context, cell_width, cell_height)
+	this.draw_labels(canvas, context, this.cell_width, this.cell_height)
 }
 
 //Draw a grid of lines to display a 'matrix' to a Canvas

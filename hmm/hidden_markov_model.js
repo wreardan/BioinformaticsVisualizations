@@ -7,8 +7,11 @@ function HiddenMarkovModel() {
 	this.matrix = null
 	this.sequence = ''
 
+	this.backpointers = {}
+	this.optimal_backpointers = []
+
 	//Info for stepping through the algorithm graphically
-	this.algorithm = 'forward'
+	this.algorithm = 'viterbi'
 	this.step_num = 0
 }
 
@@ -137,6 +140,8 @@ HiddenMarkovModel.prototype.draw = function(canvas, context, dp_canvas, dp_conte
 	}
 	//Draw DP Matrix
 	this.matrix.draw(dp_canvas, dp_context)
+	//Draw Backpointers
+	this.draw_backpointers(dp_canvas, dp_context)
 }
 
 //Execute a single step in the HMM Algorithm
@@ -261,15 +266,125 @@ HiddenMarkovModel.prototype.viterbi_recurrence = function(step) {
 		}
 	}
 
-	console.log(max_p, backpointer, state_id, y)
+	if(max_p > 0.0) {
+		var bp_index = backpointer + ',' + (y-1)
+		var index = state_id + ',' + y
+		this.backpointers[index] = bp_index
+
+		//console.log('%s -> %s (%f)', index, bp_index, max_p)
+	}
 
 	this.matrix[y][state_id] = max_p
 	return max_p
 }
 
+//Convert a csv string into a list of ints
+function string_to_list(string) {
+	var tokens = string.split(',')
+	var result = []
+	for(var i = 0; i < tokens.length; i++) {
+		var num = parseInt(tokens[i])
+		result.push(num)
+	}
+	return result
+}
+
+//Draw the backpointers that have been computed so far
+HiddenMarkovModel.prototype.draw_backpointers = function(canvas, context) {
+	var w = this.matrix.cell_width
+	var h = this.matrix.cell_height
+	//Draw All Backpointers
+	context.beginPath()
+	context.strokeStyle = '#c01010'
+	for(var index in this.backpointers) {
+		var index_tokens = index.split(',')
+		var x = parseInt(index_tokens[0])
+		var y = parseInt(index_tokens[1])
+		var cx = (x + 1.5) * w
+		var cy = (y + 1.5) * h
+		context.moveTo(cx, cy)
+
+		var bp_index = this.backpointers[index]
+		var bp_tokens = bp_index.split(',')
+		var bx = parseInt(bp_tokens[0])
+		var by = parseInt(bp_tokens[1])
+		var cbx = (bx + 1.5) * w
+		var cby = (by + 1.5) * h
+		context.lineTo(cbx, cby)
+	}
+	context.stroke()
+
+	//Draw optimal backpointers
+	context.beginPath()
+	context.strokeStyle = '#10c010'
+	//Draw first 
+	if(this.optimal_backpointers.length > 1) {
+		var coord = string_to_list(this.optimal_backpointers[0])
+		var x = (coord[0] + 1.5) * w
+		var y = (coord[1] + 1.5) * h
+		context.moveTo(x, y)
+	}
+	//draw rest
+	for(var i = 1; i < this.optimal_backpointers.length; i++) {
+		var coord = string_to_list(this.optimal_backpointers[i])
+		var bx = (coord[0] + 1.5) * w
+		var by = (coord[1] + 1.5) * h
+		context.lineTo(bx, by)
+	}
+	context.stroke()
+}
+
+//Draw backpointers to a Canvas
+var delete_me_alignemnt_draw_backpointers = function(canvas, context, w, h) {
+	//Draw all backpointers
+	context.beginPath()
+	context.strokeStyle = '#c01010'
+	for(var from in this.backpointers) {
+		//parse the from string back into x,y number values
+		var tokens = from.split(',')
+		var coords = [Number(tokens[0]), Number(tokens[1])]
+		var x1 = (coords[0] + 1.5) * w
+		var y1 = (coords[1] + 1.5) * h
+		context.moveTo(x1, y1)
+
+		var to = this.backpointers[from]
+		var x2 = (to[0] + 1.5) * w
+		var y2 = (to[1] + 1.5) * h
+		context.lineTo(x2, y2)
+	}
+	context.stroke()
+
+	//Draw optimal backpointers
+	context.beginPath()
+	context.strokeStyle = '#10c010'
+	var from = this.optimal_alignment[0]
+	for(var i = 1; i < this.optimal_alignment.length; i++) {
+		var to = this.optimal_alignment[i]
+
+		var x1 = (from[0] + 1.5) * w
+		var y1 = (from[1] + 1.5) * h
+		context.moveTo(x1, y1)
+
+		var x2 = (to[0] + 1.5) * w
+		var y2 = (to[1] + 1.5) * h
+		context.lineTo(x2, y2)
+
+		from = to
+	}
+	context.stroke()
+}
+
 //Trace Backpointers to recover most likely states
 HiddenMarkovModel.prototype.viterbi_traceback = function(step) {
+	if(step == 0) {
+		var x = this.num_states - 1
+		var y = this.sequence.length + 1
+		this.current_backpointer =  x + ',' + y
+	}
 
+	this.optimal_backpointers.push(this.current_backpointer)
+
+	this.current_backpointer = this.backpointers[this.current_backpointer]
 }
 
 HiddenMarkovModel.prototype.viterbi_step = function() {
