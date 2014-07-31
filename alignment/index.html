@@ -15,12 +15,17 @@ Match Score: <input id='match' type='text' name='match_score' value='1' /><br />
 Mismatch Score: <input id='mismatch' type='text' name='mismatch_score' value='-1' /><br />
 <input id='local_align' type='radio' name='alignment_type' value='local'>Local Alignment</input><br />
 <input type='radio' name='alignment_type' value='global' checked>Global Alignment</input><br />
+Break ties:<select id='tiebreaker'>
+<option value='match'>Matches</option>
+<option value='left'>Left</option>
+<option value='right'>Right</option>
+</select>
 <!--
 <input type='submit' value='Submit' onsubmit='reset_alignment()' /><br />
 -->
 </form>
 <button onclick='reset_alignment()'>Process</button>
-</div>
+
 <div id='global_equation'>
 $$
 \begin{equation}
@@ -44,5 +49,8 @@ $$
 \end{equation}
 $$
 </div>
+
+</div>
+
 </body>
 </html

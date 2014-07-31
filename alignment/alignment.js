@@ -14,6 +14,7 @@ function Alignment(a, b) {
 	this.match = 1
 	this.mismatch = -1
 	this.gap_penalty = -2
+	this.tiebreaker = 'match'
 
 	//Stepping Mechanism
 	this.step_num = 0
@@ -35,7 +36,7 @@ function Alignment(a, b) {
 }
 
 //reset the parameters of the model
-Alignment.prototype.reset = function(a, b, gap_penalty, match, mismatch, local_align) {
+Alignment.prototype.reset = function(a, b, gap_penalty, match, mismatch, local_align, tiebreaker) {
 	//Reset Parameters
 	this.a = a
 	this.width = a.length + 1
@@ -45,6 +46,7 @@ Alignment.prototype.reset = function(a, b, gap_penalty, match, mismatch, local_a
 	this.mismatch = mismatch
 	this.gap_penalty = gap_penalty
 	this.local_align = local_align
+	this.tiebreaker = tiebreaker
 
 	//Reset State
 	this.step_num = 0
@@ -164,17 +166,54 @@ Alignment.prototype.algorithm_step = function(step) {
 
 	//add backpointer
 	var from = [x,y]
-	if(match >= best) {
-		var to = [x-1,y-1]
-		this.backpointers[from] = to
+
+	//Prefer Matches
+	if(this.tiebreaker == 'match') {
+		if(match >= best) {
+			var to = [x-1,y-1]
+			this.backpointers[from] = to
+		}
+		else if(up >= best) {
+			var to = [x,y-1]
+			this.backpointers[from] = to
+		}
+		else if(left >= best) {
+			var to = [x-1,y]
+			this.backpointers[from] = to
+		}
 	}
-	else if(up >= best) {
-		var to = [x,y-1]
-		this.backpointers[from] = to
+	//Prefer Left
+	else if(this.tiebreaker == 'left') {
+		if(left >= best) {
+			var to = [x-1,y]
+			this.backpointers[from] = to
+		}
+		else if(up >= best) {
+			var to = [x,y-1]
+			this.backpointers[from] = to
+		}
+		else if(match >= best) {
+			var to = [x-1,y-1]
+			this.backpointers[from] = to
+		}
 	}
-	else if(left >= best) {
-		var to = [x-1,y]
-		this.backpointers[from] = to
+	//Prefer Right
+	else if(this.tiebreaker == 'right') {
+		if(left >= best) {
+			var to = [x-1,y]
+			this.backpointers[from] = to
+		}
+		else if(up >= best) {
+			var to = [x,y-1]
+			this.backpointers[from] = to
+		}
+		else if(match >= best) {
+			var to = [x-1,y-1]
+			this.backpointers[from] = to
+		}
+	}
+	else {
+		console.log('Alignment.algorithm_step() invalid tiebreaker type "%s"', this.tiebreaker)
 	}
 }
 
@@ -369,8 +408,11 @@ function reset_alignment() {
 
 	var local_align = document.getElementById('local_align').checked
 
+	//Tiebreaker
+	var tiebreaker = document.getElementById('tiebreaker').value
+
 	//Reset
-	alignment.reset(x, y, gap_penalty, match, mismatch, local_align)
+	alignment.reset(x, y, gap_penalty, match, mismatch, local_align, tiebreaker)
 
 	//Clear CANVAS
 	context.clearRect(0,0,canvas.width,canvas.height)

@@ -25,15 +25,14 @@ function hmm_step() {
 //Called on Button click, Reset the HMM with parameter values
 function reset_hmm() {
 	//Get the algorithm type from the Radio Button
-	var algorithm
 	if(document.getElementById('forward').checked) {
-		algorithm = 'forward'
+		hmm.algorithm = 'forward'
 	}
 	else if(document.getElementById('backward').checked) {
-		algorithm = 'backward'
+		hmm.algorithm = 'backward'
 	}
 	else if(document.getElementById('viterbi').checked) {
-		algorithm = 'viterbi'
+		hmm.algorithm = 'viterbi'
 	}
 
 	//Get sequence

@@ -8,7 +8,7 @@ function HiddenMarkovModel() {
 	this.sequence = ''
 
 	//Info for stepping through the algorithm graphically
-	this.algorithm = 'viterbi'
+	this.algorithm = 'forward'
 	this.step_num = 0
 
 	this.backpointers = {}

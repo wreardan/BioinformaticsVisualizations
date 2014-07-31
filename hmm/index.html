@@ -1,4 +1,5 @@
 <html>
+
 <head>
 <title>Hidden Markov Model Tool</title>
 <script src='http://dbp-consulting.com/scripts/canvasutilities.js'></script>
@@ -7,9 +8,9 @@
 <script src='hidden_markov_model.js'></script>
 <script src='main.js'></script>
 </head>
+
 <body onload='main()'>
-<canvas id='canvas' width='850' height='600'></canvas>
-<canvas id='dp_canvas' width='600' height='600'></canvas>
+
 <div id='parameters' style='float:right;'>
 <form>
 Sequence: <input id='sequence' type='text' name='sequence' value='TAGA' /><br />
@@ -21,8 +22,12 @@ Algorithm: <br />
 <button onclick='reset_hmm()'>Reset</button>
 </div>
 
+<canvas id='canvas' width='850' height='600'></canvas>
+<canvas id='dp_canvas' width='600' height='600'></canvas>
+
 <div id='equation_div'>
 
 </div>
+
 </body>
 </html
