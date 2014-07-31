@@ -22,6 +22,30 @@ function hmm_step() {
 	hmm.draw(canvas, context, dp_canvas, dp_context)
 }
 
+//Called on Button click, Reset the HMM with parameter values
+function reset_hmm() {
+	//Get the algorithm type from the Radio Button
+	var algorithm
+	if(document.getElementById('forward').checked) {
+		algorithm = 'forward'
+	}
+	else if(document.getElementById('backward').checked) {
+		algorithm = 'backward'
+	}
+	else if(document.getElementById('viterbi').checked) {
+		algorithm = 'viterbi'
+	}
+
+	//Get sequence
+	var sequence = document.getElementById('sequence').value
+
+	//Reset HMM
+	hmm.reset(sequence)
+
+	//Clear CANVAS
+	dp_context.clearRect(0,0,canvas.width,canvas.height)
+}
+
 //Globals
 var hmm
 var canvas, context

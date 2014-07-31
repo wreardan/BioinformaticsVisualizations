@@ -10,6 +10,17 @@
 <body onload='main()'>
 <canvas id='canvas' width='850' height='600'></canvas>
 <canvas id='dp_canvas' width='600' height='600'></canvas>
+<div id='parameters' style='float:right;'>
+<form>
+Sequence: <input id='sequence' type='text' name='sequence' value='TAGA' /><br />
+Algorithm: <br />
+<input id='forward' type='radio' name='algorithm' checked>Forward</input><br />
+<input id='backward' type='radio' name='algorithm'>Backward</input><br />
+<input id='viterbi' type='radio' name='algorithm'>Viterbi</input><br />
+</form>
+<button onclick='reset_hmm()'>Reset</button>
+</div>
+
 <div id='equation_div'>
 
 </div>

@@ -7,12 +7,13 @@ function HiddenMarkovModel() {
 	this.matrix = null
 	this.sequence = ''
 
-	this.backpointers = {}
-	this.optimal_backpointers = []
-
 	//Info for stepping through the algorithm graphically
 	this.algorithm = 'viterbi'
 	this.step_num = 0
+
+	this.backpointers = {}
+	this.optimal_backpointers = []
+	this.current_backpointer = null
 }
 
 /** Builds a model from emission and transition strings
@@ -105,18 +106,28 @@ HiddenMarkovModel.prototype.build_model = function(emission_string, transition_s
 
 //Reset the DP Matrix
 HiddenMarkovModel.prototype.reset = function(sequence) {
+	//Set sequence
 	if(sequence) this.sequence = sequence
+
+	//Build Matrix
 	var rows = this.sequence.length + 2
 	var columns = this.num_states
-	this.matrix = new Matrix(rows, columns, null)
+	this.matrix = new Matrix(columns, rows, null)
 
 	//Get State Labels
 	var x_labels = []
 	for(var i = 0; i < this.num_states; i++) {
 		x_labels.push(i)
 	}
+
 	//Set labels
 	this.matrix.set_labels(x_labels, sequence)
+
+	//Reset State
+	this.step_num = 0
+	this.backpointers = {}
+	this.optimal_backpointers = []
+	this.current_backpointer = null
 }
 
 //Verify that Probabilities sum to 1.0 in the Model
@@ -391,7 +402,7 @@ HiddenMarkovModel.prototype.viterbi_step = function() {
 	//Algorithm Complexity:
 	var init_complexity = this.num_states + this.sequence.length + 2 - 1
 	var recurrence_complexity = (this.num_states - 1) * (this.sequence.length + 1)
-	var traceback_complexity = Math.max(this.num_states, this.sequence.length)
+	var traceback_complexity = this.sequence.length + 2
 
 	//Initialization
 	if(this.step_num < init_complexity) {
