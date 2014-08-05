@@ -15,17 +15,38 @@
 <body onload='main()'>
 
 <div id='parameters' style='float:right;'>
+<h2>Parameters:</h2>
 <form>
 Sequence: <input id='sequence' type='text' name='sequence' value='TAGA' /><br />
 Algorithm: <br />
 <input id='forward' type='radio' name='algorithm' checked>Forward</input><br />
 <input id='backward' type='radio' name='algorithm'>Backward</input><br />
 <input id='viterbi' type='radio' name='algorithm'>Viterbi</input><br />
+<input id='viterbi' type='radio' name='algorithm'>Forward-Backward</input><br />
 </form>
-<button onclick='reset_hmm()'>Reset</button>
+<button onclick='reset_hmm()'>Run Algorithm</button>
+<br /><br /><br />
+
+<div id='node_editor'>
+<h2>Node Editor</h2>
+Node ID: <input id='node_id' type='text' name='node_id' value='' /><br />
+<span style='display:none'>
+Node Type:<select id='node_type'>
+<option value=''>Regular</option>
+<option value='start'>Start State</option>
+<option value='end'>End State</option>
+</select><br />
+</span>
+Emissions:<br />
+<textarea id='node_emissions' rows='4'></textarea><br />
+Transitions:<br />
+<textarea id='node_transitions' rows='4'></textarea><br />
+<button onclick='save_node()'>Save Node</button><br /><br />
+<button onclick='hmm_add_node()'>Add New Markov Node</button>
 </div>
 
-<button onclick='hmm_add_node()'>Add Markov Node</button>
+</div>
+
 <canvas id='canvas' class='cmenu1' width='850' height='600'></canvas>
 <canvas id='dp_canvas' width='600' height='600'></canvas>
 

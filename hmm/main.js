@@ -94,6 +94,9 @@ function mousedown(event) {
 		console.log('state %d selected', selected_state.id)
 
 	}
+
+	//prevent default
+	event.preventDefault()
 }
 function mousemove(event) {
 	if(event.which != 1) return //only interested in left-clicks
@@ -134,6 +137,43 @@ function mouseup(event) {
 
 	}
 }
+var edit_state = null
+//double click will select the node for editing
+function doubleclick(event) {
+	if(event.which != 1) return //only interested in left double-clicks
+
+	//Convert coordinates to canvas-local from event
+	var p = canvas_local_position(canvas, event)
+	var x = p.x
+	var y = p.y
+
+	//Check for collision
+	edit_state = hmm.collision(x, y)
+	if(edit_state) {
+		console.log('double click on state %d', edit_state.id)
+		//Update text boxes
+		$('#node_id').val(edit_state.id)
+		$('#node_type').val(edit_state.type)
+		$('#node_emissions').val(edit_state.emission_strings())
+		$('#node_transitions').val(edit_state.transition_strings())
+		//
+	}
+
+	event.preventDefault()
+}
+//this will save the current values in the node_editor
+function save_node() {
+	if(edit_state){
+		var id = $('#node_id').val()
+		var type = $('#node_type').val()
+		var emission_strings = $('#node_emissions').val()
+		edit_state.parse_emissions(emission_strings)
+		var transition_strings = $('#node_transitions').val()
+		edit_state.parse_transitions(transition_strings)
+		console.log('id: %s\ntype: %s\nemissions:\n%s\ntransitions:\n%s', id, type, emission_strings, transition_strings)
+	}
+}
+
 
 //Button to add a new state to the model
 //Add a new node to the HMM
@@ -156,6 +196,7 @@ function main() {
 	canvas.onmousedown = mousedown
 	canvas.onmouseup = mouseup
 	canvas.onmousemove = mousemove
+	canvas.ondblclick = doubleclick
 
 	//Dynamic Programming Matrix Canvas
 	dp_canvas = document.getElementById('dp_canvas')

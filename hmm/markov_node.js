@@ -1,4 +1,4 @@
-
+var markov_node_delimiter = ' '
 /** Markov Node class
   * contains details about a markov model node
   */
@@ -25,6 +25,61 @@ MarkovNode.prototype.default_position = function() {
 	this.y = this.id%2 * 250 + 50
 	this.w = 150
 	this.h = 200
+}
+
+//Return the emission probabilities string form seperated by newlines
+MarkovNode.prototype.emission_strings = function() {
+	var result = []
+	for(var letter in this.emission_probabilities) {
+		var prob = this.emission_probabilities[letter]
+		var line = [letter, prob].join(markov_node_delimiter)
+		result.push(line)
+	}
+	return result.join('\n')
+}
+//Parse emissions from a string seperated by newlines and commas
+MarkovNode.prototype.parse_emissions = function(value) {
+	var lines = value.split('\n')
+	for(var i = 0; i < lines.length; i++) {
+		var line = lines[i]
+		var tokens = line.split(markov_node_delimiter)
+		var letter = tokens[0]
+		var prob = parseFloat(tokens[1])
+		//(re)set emission probability
+		if(prob > 0.0) {
+			this.emission_probabilities[letter] = prob
+		}
+		//prob <= 0.0, delete
+		else {
+			delete this.emission_probabilities[letter]
+		}
+	}
+}
+
+//Return stringified transitions
+MarkovNode.prototype.transition_strings = function() {
+	var result = []
+	for(var id in this.transitions) {
+		var prob = this.transitions[id]
+		var line = [id, prob].join(markov_node_delimiter)
+		result.push(line)
+	}
+	return result.join('\n')
+}
+MarkovNode.prototype.parse_transitions = function(value) {
+	var lines = value.split('\n')
+	for(var i = 0; i < lines.length; i++) {
+		var line = lines[i]
+		var tokens = line.split(markov_node_delimiter)
+		var to_state_id = parseInt(tokens[0])
+		var prob = parseFloat(tokens[1])
+		if(prob > 0.0) {
+			this.transitions[to_state_id] = prob
+		}
+		else {
+			delete this.transitions[to_state_id]
+		}
+	}
 }
 
 //http://stackoverflow.com/questions/306316/determine-if-two-rectangles-overlap-each-other
