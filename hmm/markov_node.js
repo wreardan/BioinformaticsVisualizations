@@ -9,12 +9,47 @@ function MarkovNode(id) {
 	this.transitions = {}
 	this.type = '' //set this to start or end for special nodes
 
+	//gui attributes - x,y,w,h
+	this.default_position()
+
+	//highlight status for node and emission
+	this.highlight = false //includes highlighting of transitions
+	this.highlight_emission = ''
+}
+
+//Set default x,y coordinates for an id
+MarkovNode.prototype.default_position = function() {
 	//gui attributes
-	this.x = id/2 * 200 + 50
-	this.x += id%2 * 100
-	this.y = id%2 * 250 + 50
+	this.x = this.id/2 * 200 + 50
+	this.x += this.id%2 * 100
+	this.y = this.id%2 * 250 + 50
 	this.w = 150
 	this.h = 200
+}
+
+//http://stackoverflow.com/questions/306316/determine-if-two-rectangles-overlap-each-other
+//Return true if two nodes overlap each other
+MarkovNode.prototype.overlaps = function(other) {
+	var x2 = this.x + this.w
+	var y2 = this.y + this.h
+	var ox2 = other.x + other.w
+	var oy2 = other.y + other.h
+	if(this.x <= ox2 && x2 >= other.x) {
+		if(this.y <= oy2 && y2 >= other.y) {
+			return true
+		}
+	}
+	return false
+}
+
+//Return true if point is inside our rectangle
+MarkovNode.prototype.collision = function(x, y) {
+	if(x >= this.x && x <= this.x + this.w) {
+		if(y >= this.y && y <= this.y + this.h) {
+			return true
+		}
+	}
+	return false
 }
 
 //Add (or change) an emission probability to this node
@@ -27,32 +62,65 @@ MarkovNode.prototype.add_transition = function(to_id, probability) {
 	this.transitions[to_id] = probability
 }
 
+//Drag Node by deltax, deltay, but not less than zero x,y coordinates
+MarkovNode.prototype.drag = function(dx, dy) {
+	this.x += dx
+	if(this.x < 0) {
+		this.x = 0
+	}
+
+	this.y += dy
+	if(this.y < 0) {
+		this.y = 0
+	}
+}
+
 //Draw this Node to a Canvas
 MarkovNode.prototype.draw = function(canvas, context, hmm_states) {
 	var x = this.x
 	var y = this.y
 
 	//Setup Text properties
-	context.font = '16px monospace'
-	context.fillStyle = 'rgb(0,0,0)'
+	context.font = '32px monospace'
+	context.fillStyle = 'rgb(200,0,0)'
 
 	//Draw Node
 		//Draw Box
+		if(this.gui_selected) {
+			context.strokeStyle = 'red'
+		}
+		else {
+			context.strokeStyle = 'black'
+		}
 		context.strokeRect(x, y, this.w, this.h)
 		//Draw State ID
-		x += 65; y+= 30;
+		x += 65; y+= 40;
 
 		context.fillText(this.id.toString(), x, y)
-		//Draw Emission Probabilities
-		x -= 45; y+= 30;
-		for(var emit_value in this.emission_probabilities) {
-			var p = this.emission_probabilities[emit_value]
-			var value = emit_value + '  ' + p
-			context.fillText(value, x, y)
-			y += 30
+
+		//Draw start and end state Text instead of Emissions
+		x -= 45; y+= 50;
+		if(this.type) {
+			context.font = '32px monospace'
+			context.fillStyle = 'rgb(0,0,0)'
+			context.fillText(this.type, x, y)
+		}
+		else {
+			//Draw Emission Probabilities
+			context.font = '16px monospace'
+			context.fillStyle = 'rgb(0,0,0)'
+	
+			for(var emit_value in this.emission_probabilities) {
+				var p = this.emission_probabilities[emit_value]
+				var value = emit_value + '  ' + p
+				context.fillText(value, x, y)
+				y += 30
+			}
 		}
 
 	//Draw Transitions
+	context.font = '16px monospace'
+	context.fillStyle = 'rgb(0,0,0)'
 	for(var to_id in this.transitions) {
 		var p = this.transitions[to_id]
 		//Self transition
@@ -70,7 +138,7 @@ MarkovNode.prototype.draw = function(canvas, context, hmm_states) {
 			x = this.x + this.w
 			y = this.y + this.h / 2
 			var tx = to_state.x
-			var ty = to_state.y //+ to_state.h / 2
+			var ty = to_state.y + to_state.h / 2
 			drawArrow(context, x, y, tx, ty)
 	
 			//Draw Probabilty

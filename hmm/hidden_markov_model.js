@@ -8,12 +8,16 @@ function HiddenMarkovModel() {
 	this.sequence = ''
 
 	//Info for stepping through the algorithm graphically
-	this.algorithm = 'forward'
+	this.algorithm = 'backward'
 	this.step_num = 0
 
 	this.backpointers = {}
 	this.optimal_backpointers = []
 	this.current_backpointer = null
+
+	//for highlighting elements in the model
+	this.highlighted_node = null
+	this.sequence_index = null
 }
 
 /** Builds a model from emission and transition strings
@@ -71,7 +75,7 @@ HiddenMarkovModel.prototype.build_model = function(emission_string, transition_s
 
 		//Parse
 		var from_id = parseInt(tokens[0])
-		var to_id = tokens[1]
+		var to_id = parseInt(tokens[1])
 		var p = parseFloat(tokens[2])
 
 		//Create End_state or missing states?
@@ -130,6 +134,79 @@ HiddenMarkovModel.prototype.reset = function(sequence) {
 	this.current_backpointer = null
 }
 
+//Add a new Node to the model (called from gui)
+HiddenMarkovModel.prototype.add_node = function() {
+	//Modify old End Node
+	var end_state = this.states[this.num_states-1]
+	var new_end_state_id = this.num_states
+	//Modify old End Node transitions
+	for(var i = 0; i < this.num_states; i++) {
+		var state = this.states[i]
+		if(state.transitions[end_state.id]) {
+			//swap transition probability to new state
+			var prob = state.transitions[end_state.id]
+			delete state.transitions[end_state.id]
+			state.transitions[new_end_state_id] = prob
+		}
+	}
+	//Update ID and position
+	end_state.id = new_end_state_id
+	end_state.default_position()
+	this.states[new_end_state_id] = end_state
+	//Create Node with id n-1, old end state id
+	var id = this.num_states-1
+	var state = new MarkovNode(id)
+	this.states[id] = state
+	//Update number of states
+	this.num_states += 1
+
+	//Add default emissions with equal probability
+	var emissions = ['A','C','G','T']
+	var prob = 1.0 / emissions.length
+	for(var i = 0; i < emissions.length; i++) {
+		state.add_emission(emissions[i], prob)
+	}
+}
+
+//Check the state against the model for overlapping states
+HiddenMarkovModel.prototype.overlaps = function(node) {
+	for(var i = 0; i < this.num_states; i++) {
+		var state = this.states[i]
+		if(state != node) {
+			if(node.overlaps(state)) {
+				return state
+			}
+		}
+	}
+	return null
+}
+
+//Resize the canvas to fit the entire model
+HiddenMarkovModel.prototype.resize_canvas = function(canvas) {
+	//Find maximal width and height
+	var width = 0
+	var height = 0
+	for(var i = 0; i < this.num_states; i++) {
+		var state = this.states[i]
+		var x = state.x + state.w + 50
+		var y = state.y + state.h + 50
+		if(x > width) {
+			width = x
+		}
+		if(y > height) {
+			height = y
+		}
+	}
+
+	//Resize canvas (only if bigger)
+	if(width > canvas.width) {
+		canvas.width = width
+	}
+	if(height > canvas.height) {
+		canvas.height = height
+	}
+}
+
 //Verify that Probabilities sum to 1.0 in the Model
 HiddenMarkovModel.prototype.verify = function() {
 	var verified = true
@@ -153,6 +230,17 @@ HiddenMarkovModel.prototype.draw = function(canvas, context, dp_canvas, dp_conte
 	this.matrix.draw(dp_canvas, dp_context)
 	//Draw Backpointers
 	this.draw_backpointers(dp_canvas, dp_context)
+}
+
+//Returns which node has been clicked on or null
+HiddenMarkovModel.prototype.collision = function(x, y) {
+	for(var i = 0; i < this.num_states; i++) {
+		var state = this.states[i]
+		if(state.collision(x, y)) {
+			return state
+		}
+	}
+	return null
 }
 
 //Execute a single step in the HMM Algorithm
@@ -426,13 +514,71 @@ HiddenMarkovModel.prototype.viterbi_step = function() {
 HiddenMarkovModel.prototype.backward_recurrence = function(step) {
 	//Compute X,Y values from step
 	var w = this.num_states - 1
-	var y = Math.floor(step / w) + 1
-	var state_id = step % w + 1 //this is also the x coordinate
+	var y = this.sequence.length - Math.floor(step / w)
+	var state_id = this.num_states - step % w - 2 //this is also the x coordinate
 	var current_state = this.states[state_id]
+
+	var probability = 0.0
+
+	//skip start state for non-start of sequence
+	if(y != 0 && state_id == 0) {
+		this.matrix[y][state_id] = probability
+		return
+	}
+
+	//Compute Recurrence
+	for(var i = 0; i < this.num_states; i++) {
+		var state = this.states[i]
+
+		var transition_probability = current_state.transitions[i]
+		
+		var emission_probability = 1.0
+		if(state.type != 'end') {
+			var letter = this.sequence.charAt(y)
+			emission_probability = state.emission_probabilities[letter]
+		}
+
+		var previous_probability = this.matrix[y+1][i]
+
+		if(transition_probability && emission_probability) {
+			//console.log('%f,%f,%f', transition_probability, emission_probability, previous_probability)
+			probability += transition_probability * emission_probability * previous_probability
+		}
+	}
+
+	this.matrix[y][state_id] = probability
+}
+
+//Far right column and bottom row are zeroed, except bottom right (1)
+HiddenMarkovModel.prototype.backward_init = function(step) {
+	//Start State Probability = 1
+	if(step == 0) {
+		this.matrix[this.sequence.length + 1][this.num_states-1] = 1
+	}
+	//Horizontal Init
+	else if(step < this.num_states) {
+		this.matrix[this.sequence.length + 1][step-1] = 0
+	}
+	//Vertical Init
+	else {
+		var y = step - this.num_states
+		this.matrix[y][this.num_states-1] = 0
+	}
 }
 
 HiddenMarkovModel.prototype.backward_step = function() {
+	//Algorithm Complexity:
+	var init_complexity = this.num_states + this.sequence.length + 2 - 1
+	var recurrence_complexity = (this.num_states - 1) * (this.sequence.length + 1)
 
+	if(this.step_num < init_complexity) {
+		this.backward_init(this.step_num)
+	}
+	else if(this.step_num < init_complexity + recurrence_complexity) {
+		this.backward_recurrence(this.step_num - init_complexity)
+	} else {
+		//do nothing if finished
+	}
 }
 
 //Run Expectation Maximization algorithm

@@ -5,7 +5,8 @@ pages:
 	scp -r ../bio wreardan@pages.discovery.wisc.edu:~/public_html
 
 pages_test:
-	scp -r ../bio wreardan@pages.discovery.wisc.edu:~/public_html/test2
+	#scp -r ../bio wreardan@pages.discovery.wisc.edu:~/public_html/test
+	rsync -avz --exclude='.git/' . wreardan@pages.discovery.wisc.edu:~/public_html/test
 
 precompute_influenza:
 	time node ./js/node_force_directed.js ./influenza/human/edgec_0.3.txt ./influenza/human/clusterassign.txt ./influenza/human/force_directed_positions.txt
