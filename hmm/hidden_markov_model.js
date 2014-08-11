@@ -433,46 +433,6 @@ HiddenMarkovModel.prototype.draw_backpointers = function(canvas, context) {
 	context.stroke()
 }
 
-//Draw backpointers to a Canvas
-var delete_me_alignemnt_draw_backpointers = function(canvas, context, w, h) {
-	//Draw all backpointers
-	context.beginPath()
-	context.strokeStyle = '#c01010'
-	for(var from in this.backpointers) {
-		//parse the from string back into x,y number values
-		var tokens = from.split(',')
-		var coords = [Number(tokens[0]), Number(tokens[1])]
-		var x1 = (coords[0] + 1.5) * w
-		var y1 = (coords[1] + 1.5) * h
-		context.moveTo(x1, y1)
-
-		var to = this.backpointers[from]
-		var x2 = (to[0] + 1.5) * w
-		var y2 = (to[1] + 1.5) * h
-		context.lineTo(x2, y2)
-	}
-	context.stroke()
-
-	//Draw optimal backpointers
-	context.beginPath()
-	context.strokeStyle = '#10c010'
-	var from = this.optimal_alignment[0]
-	for(var i = 1; i < this.optimal_alignment.length; i++) {
-		var to = this.optimal_alignment[i]
-
-		var x1 = (from[0] + 1.5) * w
-		var y1 = (from[1] + 1.5) * h
-		context.moveTo(x1, y1)
-
-		var x2 = (to[0] + 1.5) * w
-		var y2 = (to[1] + 1.5) * h
-		context.lineTo(x2, y2)
-
-		from = to
-	}
-	context.stroke()
-}
-
 //Trace Backpointers to recover most likely states
 HiddenMarkovModel.prototype.viterbi_traceback = function(step) {
 	if(step == 0) {
@@ -582,6 +542,7 @@ HiddenMarkovModel.prototype.backward_step = function() {
 }
 
 //Run Expectation Maximization algorithm
-HiddenMarkovModel.prototype.forward_backward = function() {
-
+HiddenMarkovModel.prototype.forward_backward_step = function() {
+	//Expectation
+	//Maximization
 }

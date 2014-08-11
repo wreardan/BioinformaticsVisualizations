@@ -14,7 +14,7 @@ function MarkovNode(id) {
 
 	//highlight status for node and emission
 	this.highlight = false //includes highlighting of transitions
-	this.highlight_emission = ''
+	this.highlight_emission = '' 
 }
 
 //Set default x,y coordinates for an id
