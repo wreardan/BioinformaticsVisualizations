@@ -8,7 +8,7 @@ function HiddenMarkovModel() {
 	this.sequence = ''
 
 	//Info for stepping through the algorithm graphically
-	this.algorithm = 'backward'
+	this.algorithm = 'forward'
 	this.step_num = 0
 
 	this.backpointers = {}
@@ -220,7 +220,7 @@ HiddenMarkovModel.prototype.verify = function() {
 }
 
 //Draw the model to an HTML5 Canvas Element
-HiddenMarkovModel.prototype.draw = function(canvas, context, dp_canvas, dp_context) {
+HiddenMarkovModel.prototype.draw = function(canvas, context, dp_canvas, dp_context, backward_dp_canvas, backward_dp_context) {
 	//Draw all Nodes
 	for(var id in this.states) {
 		var state = this.states[id]
@@ -254,7 +254,7 @@ HiddenMarkovModel.prototype.step = function() {
 	else if(this.algorithm == 'viterbi') {
 		this.viterbi_step()
 	}
-	else if(this.algorithm == 'forward-backward') {
+	else if(this.algorithm == 'forward_backward') {
 		this.forward_backward_step()
 	}
 	else {
@@ -543,6 +543,5 @@ HiddenMarkovModel.prototype.backward_step = function() {
 
 //Run Expectation Maximization algorithm
 HiddenMarkovModel.prototype.forward_backward_step = function() {
-	//Expectation
-	//Maximization
+	//Calculate Forward Probabilities
 }

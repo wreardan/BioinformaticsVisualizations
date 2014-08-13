@@ -15,16 +15,21 @@
 <body onload='main()'>
 
 <div id='parameters' style='float:right;'>
-<h2>Parameters:</h2>
+<h2>Inputs:</h2>
 <form>
 Sequence: <input id='sequence' type='text' name='sequence' value='TAGA' /><br />
 Algorithm: <br />
 <input id='forward' type='radio' name='algorithm' checked>Forward</input><br />
 <input id='backward' type='radio' name='algorithm'>Backward</input><br />
 <input id='viterbi' type='radio' name='algorithm'>Viterbi</input><br />
-<input id='viterbi' type='radio' name='algorithm' disabled="disabled">Forward-Backward</input><br />
-<input id='speed' type='range' min='20' max='5000' />
+<input id='forward_backward' type='radio' name='algorithm'>Forward-Backward</input><br />
+Speed:<input id='speed' type='range' min='20' max='5000' />
 </form>
+Training Sequences for Forward-Backward:<br />
+<textarea id='training' rows='4'>
+TAG
+ACG
+</textarea><br />
 <button onclick='reset_hmm()'>Run Algorithm</button>
 <br /><br /><br />
 

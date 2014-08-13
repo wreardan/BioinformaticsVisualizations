@@ -39,6 +39,9 @@ function reset_hmm() {
 	else if(document.getElementById('viterbi').checked) {
 		hmm.algorithm = 'viterbi'
 	}
+	else if(document.getElementById('forward_backward').checked) {
+		hmm.algorithm = 'forward_backward'
+	}
 
 	//Get sequence
 	var sequence = document.getElementById('sequence').value
@@ -203,9 +206,9 @@ function main() {
 	dp_context = dp_canvas.getContext('2d')
 
 	//Load in Transition and Emission Probabilities
-	load_data('results/emission2.txt', function(emission_string) {
+	load_data('results/emission_forward_backward.txt', function(emission_string) {
 		//console.log('emissions:\n%s\n', emission_string)
-		load_data('results/transition2.txt', function(transition_string) {
+		load_data('results/transition_forward_backward.txt', function(transition_string) {
 			//console.log('transitions:\n%s\n', transition_string)
 			//Build Model
 			hmm = new HiddenMarkovModel()
