@@ -7,7 +7,7 @@
 		<!-- JS-Tree stylesheet theme -->
 		<link rel="stylesheet" href="../lib/themes/default/style.min.css" />
 	</head>
-	<body onload="app.load_data('data/UCEC.filtered.net', 'data/UCEC_0.3_clusterassign.txt', 'data/UCEC_positions.txt')">
+	<body onload="app.load_data('data/UCEC.filtered.net', 'data/UCEC_0.3_clusterassign.txt', 'data/UCEC_positions.txt', 'data/UCEC_Final.zdata.txt')">
 		<div id="search_bar">
 			<div id="cssmenu2">
 				<ul>
@@ -44,6 +44,10 @@
 			</div>
 		</div>
 
+		<div id='expression_sidebar'>
+			<canvas id='expression_canvas'></canvas>
+		</div>
+
 		<div id="main">
 			<canvas id="canvas"></canvas>
 		</div>
@@ -59,6 +63,7 @@
 		<script src="../js/util.js"></script>
 		<script src="../js/network.js"></script>
 		<script src="../js/app.js"></script>
+		<script src="../js/expression_data.js"></script>
 		<script src="../js/main.js"></script>
 	</body>
 </html>

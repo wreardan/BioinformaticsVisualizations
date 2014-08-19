@@ -8,8 +8,9 @@ function HiddenMarkovModel() {
 	this.sequence = ''
 
 	//Info for stepping through the algorithm graphically
-	this.algorithm = 'forward'
+	this.algorithm = 'forward_backward'
 	this.step_num = 0
+	this.current_forward_backward_step = 'forward'
 
 	this.backpointers = {}
 	this.optimal_backpointers = []
@@ -326,7 +327,10 @@ HiddenMarkovModel.prototype.forward_step = function() {
 	else if(this.step_num < init_complexity + recurrence_complexity) {
 		this.forward_recurrence(this.step_num - init_complexity)
 	}
-	//Termination?
+	//Termination
+	else {
+		return true
+	}
 }
 
 //Run the viterbi algorithm to find the most likely Path
@@ -538,10 +542,69 @@ HiddenMarkovModel.prototype.backward_step = function() {
 		this.backward_recurrence(this.step_num - init_complexity)
 	} else {
 		//do nothing if finished
+		return true
 	}
 }
 
-//Run Expectation Maximization algorithm
+//Merge forward and backward values back into the model
+HiddenMarkovModel.prototype.merge_step = function(step) {
+	//Compute X,Y values from step
+	var w = this.num_states
+	var y = Math.floor(step / w) + 1
+	var state_id = step % w + 1 //this is also the x coordinate
+	var current_state = this.states[state_id]
+
+	//forward * backward / total_probability
+	var letter = this.sequence[y]
+	var forward = this.forward_matrix[y][state_id]
+	var backward = this.matrix[y][state_id]
+	var total_p = this.forward_matrix[this.sequence.length][this.num_states-1]
+	current_state.emission_probabilities[letter] = forward * backward / total_p
+
+
+}
+
+//Run Forward-Backward algorithm for Parameter Re-estimation
 HiddenMarkovModel.prototype.forward_backward_step = function() {
 	//Calculate Forward Probabilities
+	if(this.current_forward_backward_step == 'forward') {
+		if(this.forward_step()) {
+			//finished with forward algorithm
+			//save old matrix
+			this.forward_matrix = this.matrix
+			//reset and move on to backward algorithm
+			this.reset(this.sequence)
+			this.current_forward_backward_step = 'backward'
+			//Set to -1 because step gets incremented at the end of this.step()
+			this.step_num = -1 
+		}
+	}
+	//Calculate Backward Probabilities
+	else if(this.current_forward_backward_step == 'backward') {
+		if(this.backward_step()) {
+			//save matrix
+			this.backward_matrix = this.matrix
+			//reset matrix
+			this.reset(this.sequence)
+
+			this.current_forward_backward_step = 'count'
+			//Set to -1 because step gets incremented at the end of this.step()
+			this.step_num = -1 
+		}
+	}
+	else if(this.current_forward_backward_step == 'count') {
+
+	}
+	else if(this.current_forward_backward_step == 'merge') {
+		if(this.merge_step(this.step_num)) {
+			this.current_forward_backward_step = 'done'
+		}
+	}
+	else if(this.current_forward_backward_step == 'done') {
+		//do nothing
+	}
+	else {
+		//impossible else
+		console.assert(false)
+	}
 }

@@ -21,6 +21,9 @@ function hmm_step() {
 	//Clear the Model Canvas for drawing
 	context.clearRect(0,0, canvas.width, canvas.height)
 
+	//Clear DP Canvas
+	dp_context.clearRect(0,0,canvas.width,canvas.height)
+
 	hmm.step()
 
 	hmm.resize_canvas(canvas)

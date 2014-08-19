@@ -69,6 +69,8 @@ function Network() {
 	this.iso_positions = null
 	this.radius = 20.0
 	this.clusters = {}
+
+	this.expression_data = null
 }
 
 //Initialize a Network from parsed data, each row is an edge in the network
@@ -384,6 +386,16 @@ Network.prototype.get_cluster = function(cluster_id) {
 	return this.clusters[cluster_id]
 }
 
+Network.prototype.get_gene_names_in_cluster = function(cluster_id) {
+	var nodes = this.clusters[cluster_id]
+	var names = []
+	for(var i = 0; i < nodes.length; i++) {
+		var name = nodes[i].name
+		names.push(name)
+	}
+	return names
+}
+
 Network.prototype.highlight_cluster = function(cluster_id) {
 	var cluster = this.clusters[cluster_id]
 	if(!cluster) {
@@ -421,4 +433,25 @@ Network.prototype.load_positions = function(table) {
 		var gene = this.node_map[name]
 		gene.position.set(x, y, z)
 	}
+}
+
+//Load expression data for the network in from a file
+//TODO: move to App (more appropriate location)
+Network.prototype.load_expression_data = function(filename) {
+	//Load in expression data
+	var expression_data = new ExpressionData()
+
+	var self = this
+	expression_data.load_file(filename, function() {
+		self.update_expression(1)
+	})
+
+	this.expression_data = expression_data
+}
+
+Network.prototype.update_expression = function(cluster_id) {
+	var canvas = document.getElementById('expression_canvas')
+	var context = canvas.getContext('2d')
+	var gene_names = this.get_gene_names_in_cluster(cluster_id)
+	this.expression_data.draw(canvas, context, gene_names)
 }

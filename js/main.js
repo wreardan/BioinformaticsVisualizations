@@ -8,7 +8,7 @@ var camera, scene, renderer, controls
 var spheres, splines, lines
 
 var resize = function() {
-	var width = Math.ceil(window.innerWidth * 0.80)
+	var width = Math.ceil(window.innerWidth * 0.60)
 	camera.aspect = width / window.innerHeight
 	camera.updateProjectionMatrix()
 	renderer.setSize( width, window.innerHeight )

@@ -414,6 +414,11 @@ App.prototype.setup_module_combobox = function() {
 
 		var cluster = self.network.get_cluster(cluster_id)
 		self.highlight_nodeset2(cluster, 0xFFFFFF, 0xFF0000)
+
+		//Change the expression data if available
+		if(self.network.expression_data) {
+			self.network.update_expression(cluster_id)
+		}
 	})
 }
 
@@ -453,7 +458,7 @@ App.prototype.load_clusters = function(filename) {
 	})
 }
 
-App.prototype.load_data = function(filename, clusters_filename, positions_filename) {
+App.prototype.load_data = function(filename, clusters_filename, positions_filename, expression_filename) {
 	console.log("loading data from file '%s'", filename)
 
 	//Load in data
@@ -491,16 +496,21 @@ App.prototype.load_data = function(filename, clusters_filename, positions_filena
 			self.setup_regulator_search()
 			self.setup_gene_search()
 
-			//setup positions
+			//setup positions AND clusters
 			if(positions_filename) {
 				self.load_positions(positions_filename, function() {
 					self.load_clusters(clusters_filename)
 				})
 			}
 
-			//load in clusters
+			//load in clusters only
 			else if(clusters_filename) {
 				self.load_clusters(clusters_filename)
+			}
+
+			//Load in expression data
+			if(expression_filename) {
+				self.network.load_expression_data(expression_filename)
 			}
 
 			//New search functionality
