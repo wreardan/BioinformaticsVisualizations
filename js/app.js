@@ -203,6 +203,34 @@ App.prototype.highlight_arrows = function(nodeset, color) {
 	this.scene.add(this.arrow_mesh)
 }
 
+//Add labels to the scene for nodes
+App.prototype.add_labels = function(nodeset) {
+	//remove old labels
+	if(this.labels) {
+		for(var i = 0; i < this.labels.length; i++) {
+			var label = this.labels[i]
+			this.scene.remove(label)
+		}
+	}
+	this.labels = []
+	//add new labels
+	for(var i = 0; i < nodeset.length; i++) {
+		var node = nodeset[i]
+		//add label
+		var parameters = {
+			fontsize: 16,
+		}
+		//create label sprite
+		var text_sprite = makeTextSprite(node.name, parameters)
+		//add to scene at node position
+		text_sprite.position = node.position
+		text_sprite.scale.set(2,2,2)
+		this.scene.add(text_sprite)
+		//add to label list
+		this.labels.push(text_sprite)
+	}
+}
+
 App.prototype.highlight_nodeset = function(nodeset, color) {
 
 	if(!color) {
@@ -218,6 +246,7 @@ App.prototype.highlight_nodeset = function(nodeset, color) {
 		linewidth: 1,
 	})
 
+	//build line geometry buffer
 	var geometry = new THREE.Geometry()
 	for(var i = 0; i < nodeset.length; i++) {
 		var node = nodeset[i]
@@ -228,11 +257,15 @@ App.prototype.highlight_nodeset = function(nodeset, color) {
 		}
 	}
 
+	//add lines to scene
 	this.highlight_mesh = new THREE.Line(geometry, material, THREE.LinePieces)
 	this.scene.add(this.highlight_mesh)
 
 	//draw arrowheads
 	this.highlight_arrows(nodeset)
+
+	//add labels to scene
+	this.add_labels(nodeset)
 }
 
 App.prototype.highlight_nodeset2 = function(nodeset, color, color2) {
@@ -278,6 +311,9 @@ App.prototype.highlight_nodeset2 = function(nodeset, color, color2) {
 
 	//draw arrowheads
 	this.highlight_arrows(nodeset)
+
+	//add labels to scene
+	this.add_labels(nodeset)
 }
 
 App.prototype.build_node_tree = function(nodes) {

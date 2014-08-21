@@ -139,7 +139,7 @@ ExpressionData.prototype.draw = function(canvas, context, gene_names) {
 		}
 		for(var column = 0; column < num_columns; column++) {
 			var value = expression_data[column]
-			var color = convert_to_rgb(-5, 5, value, color_scale)
+			var color = convert_to_rgb(-10, 10, value, color_scale)
 			context.fillStyle = convert_rgb_to_fillstyle(color, 'rgb')
 			var x = column * cell_width
 			var y = row*cell_height
