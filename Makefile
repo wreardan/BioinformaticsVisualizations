@@ -19,3 +19,6 @@ precompute_cancer:
 	time node ./js/node_force_directed.js ./cancer/data/LUSC.filtered.net ./cancer/data/LUSC_0.3_clusterassign.txt ./cancer/data/LUSC_positions.txt
 	time node ./js/node_force_directed.js ./cancer/data/OV.filtered.net ./cancer/data/OV_0.3_clusterassign.txt ./cancer/data/OV_positions.txt
 	time node ./js/node_force_directed.js ./cancer/data/UCEC.filtered.net ./cancer/data/UCEC_0.3_clusterassign.txt ./cancer/data/UCEC_positions.txt
+
+precompute_plants:
+	time node ./js/node_force_directed.js ./plants/edges_in_modules_with_regs.txt ./plants/allmodules.txt ./plants/force_directed_positions.txt

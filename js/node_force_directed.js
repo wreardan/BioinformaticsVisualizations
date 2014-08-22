@@ -7,9 +7,9 @@
 //Windows/Mac Example: node ./node_force_directed.js network.tab clusters.tab output.tab
 
 //Force-Directed Parameters
-var NUM_ITERATIONS = 100
-var FORCE_SCALE = 50.0
-var GRAV_STRENGTH = 10.0
+var NUM_ITERATIONS = 10
+var FORCE_SCALE = 1.0
+var GRAV_STRENGTH = 1.0
 var BAND_STRENGTH = 0.001
 
 //Read parameters
