@@ -36,6 +36,12 @@ function hmm_step() {
 
 //Called on Button click, Reset the HMM with parameter values
 function reset_hmm() {
+	//Get sequence
+	var sequence = document.getElementById('sequence').value
+
+	//Reset HMM
+	hmm.reset(sequence)
+
 	//Get the algorithm type from the Radio Button
 	if(document.getElementById('forward').checked) {
 		hmm.algorithm = 'forward'
@@ -48,13 +54,21 @@ function reset_hmm() {
 	}
 	else if(document.getElementById('forward_backward').checked) {
 		hmm.algorithm = 'forward_backward'
+
+		//Reset Forward-Backward expected matrices flag
+		hmm.expected_matrices_created = false
+
+		//Get training sequences from text box
+		var training_text = document.getElementById('training')
+		var text = training_text.value
+		var training_sequences = text.trim().split('\n')
+		console.assert(training_sequences.length > 0)
+		hmm.training_sequences = training_sequences
+		hmm.training_sequence_index = 0
+		hmm.current_forward_backward_step = 'forward'
+
+		hmm.reset(training_sequences[0])
 	}
-
-	//Get sequence
-	var sequence = document.getElementById('sequence').value
-
-	//Reset HMM
-	hmm.reset(sequence)
 
 	//Clear CANVAS
 	dp_context.clearRect(0,0,canvas.width,canvas.height)

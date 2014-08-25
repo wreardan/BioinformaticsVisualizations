@@ -8,7 +8,7 @@ function HiddenMarkovModel() {
 	this.sequence = ''
 
 	//Info for stepping through the algorithm graphically
-	this.algorithm = 'forward_backward'
+	this.algorithm = 'forward'
 	this.step_num = 0
 	this.current_forward_backward_step = 'forward'
 
@@ -576,7 +576,7 @@ HiddenMarkovModel.prototype.count_step = function(step) {
 			sum += forward * backward
 		}
 	}
-	var forward_total = this.forward_matrix[sequence.length-1][this.num_states-1]
+	var forward_total = this.forward_matrix[sequence.length+1][this.num_states-1]
 	sum /= forward_total
 
 	//add to counts matrix
@@ -611,7 +611,7 @@ HiddenMarkovModel.prototype.transition_step = function(step) {
 			sum += forward * transition * emission * backward
 		}
 	}
-	var forward_total = this.forward_matrix[sequence.length-1][this.num_states-1]
+	var forward_total = this.forward_matrix[sequence.length+1][this.num_states-1]
 	sum /= forward_total
 
 	//add count to matrix
