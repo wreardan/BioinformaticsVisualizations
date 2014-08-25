@@ -1,4 +1,5 @@
-
+//timeout value for each step in the algorithms
+var step_timeout = 500
 
 //callback for logging data to console
 function log_data(data) {
@@ -28,6 +29,9 @@ function hmm_step() {
 
 	hmm.resize_canvas(canvas)
 	hmm.draw(canvas, context, dp_canvas, dp_context)
+
+	//set timer to call again
+	setTimeout(hmm_step, step_timeout)
 }
 
 //Called on Button click, Reset the HMM with parameter values
@@ -219,7 +223,12 @@ function main() {
 			hmm.reset('TAGA')
 			
 			//Setup callback steps
-			setInterval(hmm_step, 20)
+			setTimeout(hmm_step, step_timeout)
 		})
+	})
+
+	//Setup Speed Range listener
+	$('#speed').on('change mousemove', function() {
+		step_timeout = $(this).val()
 	})
 }

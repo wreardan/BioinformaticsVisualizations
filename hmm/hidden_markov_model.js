@@ -659,11 +659,28 @@ HiddenMarkovModel.prototype.merge_transitions_step = function(step) {
 	var y = Math.floor(step / w)	//this is k?
 	var x = step % w 				//this is l?
 
+	//check for end condition
+	if(y >= this.num_states) {
+		return true
+	}
+
 	//a(k,l) = n(k->l) / sum m(n(k->m))
 	//does not use pseudo-counts because the model is given
 	//and edges are part of the model
 	//(using pseudo-counts would change the edges in the model by adding additional edges between every node)
+	var count = this.expected_transitions[y][x]
 
+	var sum = 0.0
+	for(var i = 0; i < this.num_states; i++) {
+		var n = this.expected_transitions[y][i]
+		sum += n
+	}
+
+	//store new transition probability in HMM
+	if(count && sum) {
+		var probability = count / sum
+		this.states[y].transitions[x] = probability
+	}
 }
 
 //Run Forward-Backward algorithm for Parameter Re-estimation
@@ -746,10 +763,17 @@ HiddenMarkovModel.prototype.forward_backward_step = function() {
 		}
 	}
 
-	//Merge expected counts and expected transitions back into the model
+	//Merge expected counts back into the model
 	//The 'maximization' step
 	else if(this.current_forward_backward_step == 'merge_counts') {
 		if(this.merge_counts_step(this.step_num)) {
+			this.current_forward_backward_step = 'merge_transitions'
+			this.step_num = -1
+		}
+	}
+	//Merge expected transitions back into the model
+	else if(this.current_forward_backward_step == 'merge_transitions') {
+		if(this.merge_transitions_step(this.step_num)) {
 			this.current_forward_backward_step = 'done'
 		}
 	}

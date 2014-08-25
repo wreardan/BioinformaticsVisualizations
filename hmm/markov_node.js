@@ -167,7 +167,8 @@ MarkovNode.prototype.draw = function(canvas, context, hmm_states) {
 	
 			for(var emit_value in this.emission_probabilities) {
 				var p = this.emission_probabilities[emit_value]
-				var value = emit_value + '  ' + p
+				var rounded = p.toFixed(4).toString()
+				var value = emit_value + '  ' + rounded
 				context.fillText(value, x, y)
 				y += 30
 			}
@@ -178,12 +179,13 @@ MarkovNode.prototype.draw = function(canvas, context, hmm_states) {
 	context.fillStyle = 'rgb(0,0,0)'
 	for(var to_id in this.transitions) {
 		var p = this.transitions[to_id]
+		var rounded = p.toFixed(4).toString()
 		//Self transition
 		if(this.id == to_id) {
 			x = this.x + this.w / 2
 			y = this.y
 			drawArrow(context, x, y - 20, x, y)
-			context.fillText(p.toString(), x - 20, y - 20)
+			context.fillText(rounded, x - 20, y - 20)
 		}
 		else{
 			//Non-self transition
@@ -201,7 +203,7 @@ MarkovNode.prototype.draw = function(canvas, context, hmm_states) {
 				var mx = (x + tx) / 2
 				var my = (y + ty) / 2
 				//Draw text
-				context.fillText(p.toString(), mx - 20, my)
+				context.fillText(rounded, mx - 20, my)
 		}
 	}
 }
