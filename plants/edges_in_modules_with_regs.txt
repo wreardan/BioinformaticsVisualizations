@@ -1,4 +1,3 @@
-Regulator	Target
 Medtr4g079760	Medtr1g024370
 Medtr4g079760	Medtr1te079500
 Medtr4g079760	Medtr2g039410

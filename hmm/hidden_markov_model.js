@@ -16,6 +16,11 @@ function HiddenMarkovModel() {
 	this.optimal_backpointers = []
 	this.current_backpointer = null
 
+	//Forward-backward variables
+	this.training_sequence_index = 0
+	this.training_sequences = ['TAGA', 'ACGG']
+	this.dictionary = ['A', 'C', 'G', 'T']
+
 	//for highlighting elements in the model
 	this.highlighted_node = null
 	this.sequence_index = null
@@ -546,26 +551,143 @@ HiddenMarkovModel.prototype.backward_step = function() {
 	}
 }
 
-//Merge forward and backward values back into the model
-HiddenMarkovModel.prototype.merge_step = function(step) {
-	//Compute X,Y values from step
+//Calculate the expected counts for a training sequence
+HiddenMarkovModel.prototype.count_step = function(step) {
+	//Compute x,y coordinates from step
 	var w = this.num_states
-	var y = Math.floor(step / w) + 1
-	var state_id = step % w + 1 //this is also the x coordinate
-	var current_state = this.states[state_id]
+	var y = Math.floor(step / w)
+	var state_id = step % w
 
-	//forward * backward / total_probability
-	var letter = this.sequence[y]
-	var forward = this.forward_matrix[y][state_id]
-	var backward = this.matrix[y][state_id]
-	var total_p = this.forward_matrix[this.sequence.length][this.num_states-1]
-	current_state.emission_probabilities[letter] = forward * backward / total_p
+	//check if finished
+	if(y >= this.dictionary.length) {
+		return true
+	}
 
+	//N(k,c) += sum(f(j, k, t) * b(j, k, t))
+	var sequence = this.training_sequences[this.training_sequence_index]
+
+	var letter = this.dictionary[y]
+	//sum over characters
+	var sum = 0.0
+	for(var i = 0; i < sequence.length; i++) {
+		if(sequence.charAt(i) == letter) {
+			var forward = this.forward_matrix[i][state_id]
+			var backward = this.backward_matrix[i][state_id]
+			sum += forward * backward
+		}
+	}
+	var forward_total = this.forward_matrix[sequence.length-1][this.num_states-1]
+	sum /= forward_total
+
+	//add to counts matrix
+	this.matrix[y][state_id] += sum
+
+}
+
+//Calculate the expected transitions
+HiddenMarkovModel.prototype.transition_step = function(step) {
+	//Compute x,y coordinates from step
+	var w = this.num_states
+	var y = Math.floor(step / w)	//this is k?
+	var x = step % w 				//this is l?
+
+	//check for end condition
+	if(y >= this.num_states) {
+		return true
+	}
+
+	//retrieve the current training sequence
+	var sequence = this.training_sequences[this.training_sequence_index]
+
+	//sum(f(j,k,t) * a(k,l) * e(j,l,t+1) * b(j,l,t+1))
+	var sum = 0.0
+	for(var i = 0; i < sequence.length; i++) {
+		var forward = this.forward_matrix[i][y]
+		var transition = this.states[y].transitions[x]
+		var letter = sequence.charAt(i+1)
+		var emission = this.states[x].emission_probabilities[letter]
+		var backward = this.backward_matrix[i+1][x]
+		if(emission && transition) {
+			sum += forward * transition * emission * backward
+		}
+	}
+	var forward_total = this.forward_matrix[sequence.length-1][this.num_states-1]
+	sum /= forward_total
+
+	//add count to matrix
+	this.matrix[y][x] += sum
+}
+
+/*
+Merge expected counts back into the HMM
+Part of the Maximization step of forward-backward
+*/
+HiddenMarkovModel.prototype.merge_counts_step = function(step) {
+	//Compute x,y coordinates from step
+	var w = this.num_states
+	var y = Math.floor(step / w)
+	var state_id = step % w
+
+	//check if finished
+	if(y >= this.dictionary.length) {
+		return true
+	}
+
+	//e(k,c) = (n(k,c) + 1) / sum c'(n(k,c'))
+	var count = this.expected_counts[y][state_id]
+
+	var sum = 0.0
+	for(var i = 0; i < this.dictionary.length; i++) {
+		var n = this.expected_counts[i][state_id]
+		sum += n
+	}
+
+	//store result in model
+	var delta = 0.001
+	var probability = (count + delta) / (sum + delta*this.dictionary.length)
+	var letter = this.dictionary[y]
+	this.states[state_id].emission_probabilities[letter] = probability
+}
+
+/*
+Merge expected transitions back into the HMM
+Part of the Maximization step of forward-backward
+*/
+HiddenMarkovModel.prototype.merge_transitions_step = function(step) {
+	//Compute x,y coordinates from step
+	var w = this.num_states
+	var y = Math.floor(step / w)	//this is k?
+	var x = step % w 				//this is l?
+
+	//a(k,l) = n(k->l) / sum m(n(k->m))
+	//does not use pseudo-counts because the model is given
+	//and edges are part of the model
+	//(using pseudo-counts would change the edges in the model by adding additional edges between every node)
 
 }
 
 //Run Forward-Backward algorithm for Parameter Re-estimation
 HiddenMarkovModel.prototype.forward_backward_step = function() {
+	//create the expected counts and expected transitions matrices on first iteration
+	if(!this.expected_matrices_created) { // only do this once
+		this.expected_matrices_created = true
+		//create the expected counts matrix
+		this.expected_counts = new Matrix(this.dictionary.length, this.num_states, 0.0)
+
+		//Get State Labels
+		var x_labels = []
+		for(var i = 0; i < this.num_states; i++) {
+			x_labels.push(i)
+		}
+
+		//Set x,y axis labels
+		this.expected_counts.set_labels(x_labels, this.dictionary, true)
+
+		//create the expected transitions matrix
+		this.expected_transitions = new Matrix(this.num_states, this.num_states, 0.0)
+
+		this.expected_transitions.set_labels(x_labels, x_labels, true)
+	}
 	//Calculate Forward Probabilities
 	if(this.current_forward_backward_step == 'forward') {
 		if(this.forward_step()) {
@@ -585,18 +707,49 @@ HiddenMarkovModel.prototype.forward_backward_step = function() {
 			//save matrix
 			this.backward_matrix = this.matrix
 			//reset matrix
-			this.reset(this.sequence)
+			this.matrix = this.expected_counts
 
 			this.current_forward_backward_step = 'count'
 			//Set to -1 because step gets incremented at the end of this.step()
 			this.step_num = -1 
 		}
 	}
+	//Calculate the Expected Counts
 	else if(this.current_forward_backward_step == 'count') {
+		if(this.count_step(this.step_num)) {
+			//advance to transition step
+			this.current_forward_backward_step = 'transition'
 
+			//dont need to save expected counts matrix, because it is already available in this
+
+			//set matrix to transition matrix
+			this.matrix = this.expected_transitions
+
+			this.step_num = -1
+		}
 	}
-	else if(this.current_forward_backward_step == 'merge') {
-		if(this.merge_step(this.step_num)) {
+	//Calculate expected transitions
+	else if(this.current_forward_backward_step == 'transition') {
+		if(this.transition_step(this.step_num)) {
+			//Repeat for next training sequence
+			this.training_sequence_index += 1
+			if(this.training_sequence_index >= this.training_sequences.length) {
+				this.current_forward_backward_step = 'merge_counts'
+			}
+			//No more training sequences, recalculate parameters
+			else {
+				this.current_forward_backward_step = 'forward'
+				var next_sequence = this.training_sequences[this.training_sequence_index]
+				this.reset(next_sequence)
+			}
+			this.step_num = -1 
+		}
+	}
+
+	//Merge expected counts and expected transitions back into the model
+	//The 'maximization' step
+	else if(this.current_forward_backward_step == 'merge_counts') {
+		if(this.merge_counts_step(this.step_num)) {
 			this.current_forward_backward_step = 'done'
 		}
 	}

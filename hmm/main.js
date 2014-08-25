@@ -219,7 +219,7 @@ function main() {
 			hmm.reset('TAGA')
 			
 			//Setup callback steps
-			setInterval(hmm_step, 200)
+			setInterval(hmm_step, 20)
 		})
 	})
 }

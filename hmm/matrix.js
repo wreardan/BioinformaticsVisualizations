@@ -125,13 +125,20 @@ Matrix.prototype.draw_labels = function(canvas, context, w, h) {
 	for(var i = 0; i < this.y_labels.length; i++) {
 		var label = this.y_labels[i]
 		var x = (0.5) * w
-		var y = (i + 2.5) * h
+		var y
+		if(this.zero_based) {
+			y = (i + 1.5) * h
+		}
+		else {
+			y = (i + 2.5) * h
+		}
 		context.fillText(label, x, y)
 	}
 }
 
 //Set the X and Y labels for the Matrix
-Matrix.prototype.set_labels = function(x_labels, y_labels) {
+Matrix.prototype.set_labels = function(x_labels, y_labels, zero_based) {
+	this.zero_based = zero_based
 	if(typeof(x_labels) == 'string') {
 		this.x_labels = convert_string_to_list(x_labels)
 	}
