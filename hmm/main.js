@@ -19,19 +19,26 @@ function load_data(filename, callback) {
 
 //Step through the algorithm
 function hmm_step() {
+
+	hmm.step()
+
+	//set timer to call again
+	setTimeout(hmm_step, step_timeout)
+}
+
+//Draw loop
+function draw() {
 	//Clear the Model Canvas for drawing
 	context.clearRect(0,0, canvas.width, canvas.height)
 
 	//Clear DP Canvas
 	dp_context.clearRect(0,0,canvas.width,canvas.height)
 
-	hmm.step()
-
+	//Resize then draw
 	hmm.resize_canvas(canvas)
 	hmm.draw(canvas, context, dp_canvas, dp_context)
-
-	//set timer to call again
-	setTimeout(hmm_step, step_timeout)
+	
+	requestAnimationFrame(draw)
 }
 
 //Called on Button click, Reset the HMM with parameter values
@@ -238,6 +245,9 @@ function main() {
 			
 			//Setup callback steps
 			setTimeout(hmm_step, step_timeout)
+
+			//Setup draw loop
+			requestAnimationFrame(draw)
 		})
 	})
 
