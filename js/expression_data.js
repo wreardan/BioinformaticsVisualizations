@@ -118,6 +118,10 @@ ExpressionData.prototype.load_file = function(filename, callback) {
 //Draw expression data for a list of genes to a Canvas element
 ExpressionData.prototype.draw = function(canvas, context, gene_names) {
 	console.assert(gene_names.length > 0)
+	//Setup canvas dimensions
+	canvas.width = window.innerWidth * 0.20
+	canvas.height = window.innerHeight
+
 	//Calculate width per column, and height per row
 	var first_gene = gene_names[0]
 	var num_columns = this.gene_map[first_gene].length
@@ -125,6 +129,10 @@ ExpressionData.prototype.draw = function(canvas, context, gene_names) {
 
 	var cell_height = canvas.height / gene_names.length
 
+	//Max cell dimensions
+	var max_cell_dimension = 20
+	cell_width = Math.min(cell_width, max_cell_dimension)
+	cell_height = Math.min(cell_height, max_cell_dimension)
 
 	//setup color scale
 	var color_scale = color_scales['red_blue']
