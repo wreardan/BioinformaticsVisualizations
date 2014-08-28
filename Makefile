@@ -8,6 +8,9 @@ pages_test:
 	#scp -r ../bio wreardan@pages.discovery.wisc.edu:~/public_html/test
 	rsync -avz --exclude='.git/' . wreardan@pages.discovery.wisc.edu:~/public_html/test
 
+sushmita:
+	rsync -avz --exclude='.git/' . sroy@pages.discovery.wisc.edu:~/public_html/visualizations
+
 precompute_influenza:
 	time node ./js/node_force_directed.js ./influenza/human/edgec_0.3.txt ./influenza/human/clusterassign.txt ./influenza/human/force_directed_positions.txt
 	time node ./js/node_force_directed.js ./influenza/mouse/edgec_0.3.txt ./influenza/mouse/clusterassign.txt ./influenza/mouse/force_directed_positions.txt

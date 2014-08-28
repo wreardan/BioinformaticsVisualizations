@@ -197,14 +197,14 @@ Alignment.prototype.algorithm_step = function(step) {
 			this.backpointers[from] = to
 		}
 	}
-	//Prefer Right
+	//Prefer Up
 	else if(this.tiebreaker == 'right') {
-		if(left >= best) {
-			var to = [x-1,y]
+		if(up >= best) {
+			var to = [x,y-1]
 			this.backpointers[from] = to
 		}
-		else if(up >= best) {
-			var to = [x,y-1]
+		else if(left >= best) {
+			var to = [x-1,y]
 			this.backpointers[from] = to
 		}
 		else if(match >= best) {
